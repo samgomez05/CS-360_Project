@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">InventoryApp</string>
+    <string name="company_name">Acme Co.</string>
+</resources>
