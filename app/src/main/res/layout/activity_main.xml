@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -11,38 +12,26 @@
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
         android:minHeight="?attr/actionBarSize"
-        android:textColor="@android:color/white"
         android:theme="?attr/actionBarTheme"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:title="Inventory"
+        app:titleTextColor="@color/white"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_main"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:layout_marginBottom="35dp"
+        android:layout_marginBottom="40dp"
         android:layout_marginEnd="20dp"
         android:clickable="true"
         android:minHeight="?attr/actionBarSize"
-        android:theme="?attr/actionBarTheme"
-        app:tint="#FFFFFF"
+        app:srcCompat="@mipmap/_326505_add"
+        app:tint="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:srcCompat="@mipmap/_326505_add" />
-
-    <!-- Menu button for operator security. Possible need if it's a shared device -->
-    <ImageButton
-        android:id="@+id/menu_button"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:background="#00FFFFFF"
-        android:src="@mipmap/_326672_menu"
-        android:paddingEnd="12dp"
-        app:tint="#FFFFFF"
-        app:layout_constraintBottom_toBottomOf="@id/toolbar_main"
-        app:layout_constraintEnd_toEndOf="@id/toolbar_main"
-        app:layout_constraintTop_toTopOf="@id/toolbar_main"
-        app:layout_constraintVertical_bias="0.5" />
+        tools:ignore="ContentDescription" />
 
     <!-- ScrollView implemented with nest GridLayout for large amount of items in inventory -->
     <ScrollView
