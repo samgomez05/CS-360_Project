@@ -54,11 +54,26 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- Frame layout required as Scrollview does now allow multiple children -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
             <LinearLayout
                 android:id="@+id/list_view_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"/>
+
+            <GridLayout
+                android:id="@+id/grid_view_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:columnCount="2"
+                android:padding="8dp"/>
+
+        </FrameLayout>
 
     </ScrollView>
 
