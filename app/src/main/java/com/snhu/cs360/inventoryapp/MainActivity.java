@@ -10,14 +10,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,6 +29,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
+
+import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,8 +62,9 @@ public class MainActivity extends AppCompatActivity {
         }
         setContentView(R.layout.activity_main);
 
-        // Hide the action bar and programmatically set title
-        getSupportActionBar().hide();
+        // Properly set custom toolbar
+        MaterialToolbar toolbar = findViewById(R.id.toolbar_main);
+        setSupportActionBar(toolbar);
 
         // Request SMS and Notification permissions from user
         // Needed as an array as only one permission was being asked upon login
@@ -87,12 +92,37 @@ public class MainActivity extends AppCompatActivity {
         // On FAB press, show dialogue to add item to inventory
         findViewById(R.id.fab_main).setOnClickListener(v -> showAddItemDialog());
 
-        // On logout button press, clear user session and redirect to login activity
         // TODO: Setup menu dialog with options to encompass both logout and layout preference
-        ImageButton logoutButton = findViewById(R.id.menu_button);
-        logoutButton.setOnClickListener(v -> logout());
 
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(android.view.Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.dialog_main_menu, menu);
+
+        // Steps to set color white, extract icon and tint it
+        Drawable drawable = menu.findItem(R.id.activity_main_menu).getIcon();
+        drawable = DrawableCompat.wrap(drawable);
+
+        DrawableCompat.setTint(drawable, ContextCompat.getColor(this, R.color.white));
+        menu.findItem(R.id.activity_main_menu).setIcon(drawable);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
+        switch (String.valueOf(item.getTitle())) {
+            case "Logout":
+                logout();
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+
 
 
     @Override

@@ -13,6 +13,7 @@
         android:background="?attr/colorPrimary"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
+        app:title=" "
         app:layout_constraintTop_toTopOf="parent"/>
 
 
@@ -24,7 +25,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHeight_percent="0.75">
+        app:layout_constraintHeight_percent="0.80">
 
         <TextView
             android:id="@+id/company_name"
@@ -40,7 +41,7 @@
             android:id="@+id/username_field"
             android:layout_width="0dp"
             android:layout_height="50dp"
-            android:hint="Email"
+            android:hint="Username/Email"
             app:layout_constraintTop_toBottomOf="@id/company_name"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -64,6 +65,7 @@
             android:id="@+id/login_button"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:text="Login"
             app:layout_constraintTop_toBottomOf="@id/password_field"
             app:layout_constraintStart_toStartOf="parent"

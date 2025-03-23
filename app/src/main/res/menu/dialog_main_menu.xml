@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/activity_main_menu"
+        android:icon="@mipmap/_326672_menu"
+        android:title=""
+        app:showAsAction="always"
+        >
+
+        <menu>
+
+        <!-- Menu item for Logout -->
+            <item
+                android:id="@+id/action_logout"
+                android:title="Logout"
+                app:showAsAction="never"/>
+
+        </menu>
+
+    </item>
+
+</menu>
