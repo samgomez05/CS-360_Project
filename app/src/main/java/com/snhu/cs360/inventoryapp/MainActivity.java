@@ -11,15 +11,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.telephony.SmsManager;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.GridLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,8 +28,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
-
-import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,8 +60,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Hide the action bar and programmatically set title
         getSupportActionBar().hide();
-        MaterialToolbar toolbar = findViewById(R.id.toolbar_main);
-        toolbar.setTitle(R.string.app_name);
 
         // Request SMS and Notification permissions from user
         // Needed as an array as only one permission was being asked upon login
@@ -82,27 +78,19 @@ public class MainActivity extends AppCompatActivity {
         loginDbHelper = new LoginDatabaseHelper(this);
         inventoryDbHelper = new InventoryDatabaseHelper(this);
 
-        // Get GridLayout view and populate it with inventory items
+        // Get LinearLayout view and populate it with inventory items
         // TODO: Could not setup 'grid' layout and looks as list. Need to fix this.
-        GridLayout gridLayout = findViewById(R.id.grid_layout);
-        populateGridWithInventoryItems(gridLayout);
+        LinearLayout linearLayout = findViewById(R.id.list_view_layout);
+
+        populateListViewWithInventoryItems(linearLayout);
 
         // On FAB press, show dialogue to add item to inventory
-        findViewById(R.id.fab_main).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showAddItemDialog();
-            }
-        });
+        findViewById(R.id.fab_main).setOnClickListener(v -> showAddItemDialog());
 
         // On logout button press, clear user session and redirect to login activity
-        ImageButton logoutButton = findViewById(R.id.logout_button);
-        logoutButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                logout();
-            }
-        });
+        // TODO: Setup menu dialog with options to encompass both logout and layout preference
+        ImageButton logoutButton = findViewById(R.id.menu_button);
+        logoutButton.setOnClickListener(v -> logout());
 
     }
 
@@ -140,101 +128,85 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    // BULK OF LOGIC FOR MAIN ACTIVITY
+    private View createInventoryItemView(Cursor cursor) {
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View itemView = inflater.inflate(R.layout.item_view_list, null);
+
+        String itemName = cursor.getString(cursor.getColumnIndexOrThrow("item_name"));
+        int[] itemQuantity = {cursor.getInt(cursor.getColumnIndexOrThrow("quantity"))};
+
+        TextView itemNameTextView = itemView.findViewById(R.id.itemNameTextView);
+        TextView itemQuantityTextView = itemView.findViewById(R.id.itemQuantityTextView);
+
+
+        itemNameTextView.setText(itemName);
+        itemQuantityTextView.setText(String.valueOf(itemQuantity[0]));
+
+        // Add button and logic to increment item quantity
+        Button addQtyButton = itemView.findViewById(R.id.itemAddButton);
+        addQtyButton.setOnClickListener(v -> {
+            int newQuantity = ++itemQuantity[0];
+
+            // Attempt to update item in database. try may not be needed for on-device db
+            // but best practice for an external db.
+            try {
+                inventoryDbHelper.updateItemQuantity(itemName, newQuantity);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Error updating item quantity", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            itemQuantityTextView.setText(String.valueOf(newQuantity));
+            itemQuantity[0] = newQuantity;
+            checkItemQuantity(itemName, newQuantity);
+        });
+
+        // Subtract button and logic to decrease item quantity
+        Button subQtyButton = itemView.findViewById(R.id.itemSubtractButton);
+        subQtyButton.setOnClickListener(v -> {
+            if (itemQuantity[0] > 0) {
+                int newQuantity = --itemQuantity[0];
+
+                // Attempt to update item in database. try may not be needed for on-device db
+                // but best practice for an external db.
+                try {
+                    inventoryDbHelper.updateItemQuantity(itemName, newQuantity);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(this, "Error updating item quantity", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                itemQuantityTextView.setText(String.valueOf(newQuantity));
+                itemQuantity[0] = newQuantity;
+                checkItemQuantity(itemName, newQuantity);
+            }
+        });
+
+        // TODO: Setup logic to display itemImage
+        // TODO: Swipe left to delete item from inventory
+
+        return itemView;
+    }
+
+
+    private void populateListViewWithInventoryItems(ViewGroup view) {
+        view.removeAllViews();
+        Cursor cursor = inventoryDbHelper.getAllItems();
+
+        // TODO: Header logic removed due to 'new' list view. Setup filters
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                view.addView(createInventoryItemView(cursor));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+    }
+
     // Populates GridLayout with inventory items from SQLite database created in
     // InventoryDatabaseHelper
-    // TODO: Swipe left to delete item from inventory
-    private void populateGridWithInventoryItems(GridLayout gridLayout) {
-        gridLayout.removeAllViews(); // Clearing out existing views
-
-        // Adding column headers for operator convenience
-        String[] headers = {"Item Name", "Quantity", "Add", "Subtract"};
-        for (String header : headers) {
-            TextView headerView = new TextView(this);
-            headerView.setText(header);
-            headerView.setTypeface(null, Typeface.BOLD);
-            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-            params.width = 0;
-            params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-            params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1, 1f);
-            headerView.setLayoutParams(params);
-            gridLayout.addView(headerView);
-        }
-
-        Cursor cursor = inventoryDbHelper.getAllItems();
-        if (cursor != null && cursor.moveToFirst()) {
-            // Number of columns in the grid (item name, quantity, add button, subtract button)
-            int columnCount = 4;
-            gridLayout.setColumnCount(columnCount);
-
-            do {
-                String itemName = cursor.getString(cursor.getColumnIndexOrThrow("item_name"));
-                int[] itemQuantity = {cursor.getInt(cursor.getColumnIndexOrThrow("quantity"))};
-
-                TextView itemNameView = new TextView(this);
-                itemNameView.setText(itemName);
-                GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-                params.width = 0;
-                params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-                params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1, 1f);
-                itemNameView.setLayoutParams(params);
-
-                TextView itemQuantityView = new TextView(this);
-                itemQuantityView.setText(String.valueOf(itemQuantity[0]));
-                params = new GridLayout.LayoutParams();
-                params.width = 0;
-                params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-                params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1, 1f);
-                itemQuantityView.setLayoutParams(params);
-
-                // Add button and logic to increment item quantity
-                Button addButton = new Button(this);
-                addButton.setText("+");
-                addButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        int newQuantity = itemQuantity[0] + 1;
-                        inventoryDbHelper.updateItemQuantity(itemName, newQuantity);
-                        itemQuantityView.setText(String.valueOf(newQuantity));
-                        itemQuantity[0] = newQuantity;
-                    }
-                });
-                params = new GridLayout.LayoutParams();
-                params.width = 0;
-                params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-                params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1, 1f);
-                addButton.setLayoutParams(params);
-
-                // Subtract button and logic to decrement item quantity
-                Button subtractButton = new Button(this);
-                subtractButton.setText("-");
-                subtractButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (itemQuantity[0] > 0) {
-                            int newQuantity = itemQuantity[0] - 1;
-                            inventoryDbHelper.updateItemQuantity(itemName, newQuantity);
-                            itemQuantityView.setText(String.valueOf(newQuantity));
-                            itemQuantity[0] = newQuantity;
-                            checkItemQuantity(itemName, newQuantity);
-                        }
-                    }
-                });
-                params = new GridLayout.LayoutParams();
-                params.width = 0;
-                params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-                params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1, 1f);
-                subtractButton.setLayoutParams(params);
-
-                gridLayout.addView(itemNameView);
-                gridLayout.addView(itemQuantityView);
-                gridLayout.addView(addButton);
-                gridLayout.addView(subtractButton);
-            } while (cursor.moveToNext()); // For each item in the inventory
-
-            cursor.close();
-        }
-    }
+    // TODO: private void populateGridWithInventoryItems(View view) {}
 
 
     // On FAB press, show dialogue to add item to inventory
@@ -255,9 +227,9 @@ public class MainActivity extends AppCompatActivity {
                 String itemName = inputName.getText().toString();
                 int itemQuantity = Integer.parseInt(inputQuantity.getText().toString());
                 inventoryDbHelper.addItem(itemName, itemQuantity);
-                GridLayout gridLayout = findViewById(R.id.grid_layout);
-                gridLayout.removeAllViews();
-                populateGridWithInventoryItems(gridLayout);
+                LinearLayout view = findViewById(R.id.list_view_layout);
+                view.removeAllViews();
+                populateListViewWithInventoryItems(view);
             }
         });
 

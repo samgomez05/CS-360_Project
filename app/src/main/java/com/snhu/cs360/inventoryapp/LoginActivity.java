@@ -11,8 +11,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.appbar.MaterialToolbar;
-
 public class LoginActivity extends AppCompatActivity {
 
     //
@@ -39,8 +37,6 @@ public class LoginActivity extends AppCompatActivity {
 
         // Hide the action bar and programmatically set the toolbar title
         getSupportActionBar().hide();
-        MaterialToolbar toolbar = findViewById(R.id.toolbar_login);
-        toolbar.setTitle(R.string.app_name);
 
         // Check if the database is empty and insert admin user if it is
         // TODO: Add method to change password on first login
