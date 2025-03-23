@@ -6,7 +6,6 @@ import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -23,6 +22,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == SMS_PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -219,10 +219,14 @@ public class MainActivity extends AppCompatActivity {
         final EditText inputQuantity = viewInflated.findViewById(R.id.input_item_quantity);
 
         builder.setView(viewInflated);
+        builder.setPositiveButton(android.R.string.ok, (dialog, which) -> {
 
-        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
+            if (inputName.getText().toString().isEmpty() || inputQuantity.getText().toString().isEmpty()) {
+                Toast.makeText(this, "Please enter item name and quantity", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            try {
                 dialog.dismiss();
                 String itemName = inputName.getText().toString();
                 int itemQuantity = Integer.parseInt(inputQuantity.getText().toString());
@@ -230,15 +234,15 @@ public class MainActivity extends AppCompatActivity {
                 LinearLayout view = findViewById(R.id.list_view_layout);
                 view.removeAllViews();
                 populateListViewWithInventoryItems(view);
+            } catch (Exception e) {
+                dialog.dismiss();
+                Toast.makeText(this, "Error adding item", Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
             }
+
         });
 
-        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
+        builder.setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.cancel());
 
         builder.show();
     }
