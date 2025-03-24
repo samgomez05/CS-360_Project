@@ -17,6 +17,11 @@
                 android:title="Logout"
                 app:showAsAction="never"/>
 
+            <item
+                android:id="@+id/action_change_layout"
+                android:title="Switch Layouts"
+                app:showAsAction="never"/>
+
         </menu>
 
     </item>

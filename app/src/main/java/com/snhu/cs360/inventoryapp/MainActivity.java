@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,6 +50,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int SMS_PERMISSION_CODE = 100;
     private static final int NOTIFICATION_PERMISSION_CODE = 100;
 
+    private LinearLayout linearLayout;
+    private GridLayout gridLayout;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
             finish();
             return;
         }
+
         setContentView(R.layout.activity_main);
 
         // Properly set custom toolbar
@@ -85,7 +90,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Get LinearLayout view and populate it with inventory items
         // TODO: Could not setup 'grid' layout and looks as list. Need to fix this.
-        LinearLayout linearLayout = findViewById(R.id.list_view_layout);
+        linearLayout = findViewById(R.id.list_view_layout);
+        linearLayout.setTag("item_view_list");
+
+        gridLayout = findViewById(R.id.grid_view_layout);
+        gridLayout.setTag("item_view_grid");
 
         populateListViewWithInventoryItems(linearLayout);
 
@@ -117,6 +126,10 @@ public class MainActivity extends AppCompatActivity {
             case "Logout":
                 logout();
                 break;
+
+            case "Switch Layouts":
+                toggleView();
+                break;
         }
 
         return super.onOptionsItemSelected(item);
@@ -137,13 +150,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void toggleView() {
+        int visibleView = linearLayout.getVisibility();
+        if (visibleView == View.VISIBLE) {
+            linearLayout.setVisibility(View.GONE);
+            gridLayout.setVisibility(View.VISIBLE);
+            populateListViewWithInventoryItems(gridLayout);
+        } else {
+            linearLayout.setVisibility(View.VISIBLE);
+            gridLayout.setVisibility(View.GONE);
+            populateListViewWithInventoryItems(linearLayout);
+        }
+    }
 
     // Verifies if user is logged in by checking shared preferences
     private boolean isUserLoggedIn() {
         SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
         return sharedPreferences.getBoolean("is_logged_in", false);
     }
-
 
     // Logout method to clear user session and redirect to login activity
     private void logout() {
@@ -157,10 +181,9 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
-
-    private View createInventoryItemView(Cursor cursor) {
+    private View createInventoryItemView(Cursor cursor, int layoutId) {
         LayoutInflater inflater = LayoutInflater.from(this);
-        View itemView = inflater.inflate(R.layout.item_view_list, null);
+        View itemView = inflater.inflate(layoutId, null);
 
         String itemName = cursor.getString(cursor.getColumnIndexOrThrow("item_name"));
         int[] itemQuantity = {cursor.getInt(cursor.getColumnIndexOrThrow("quantity"))};
@@ -225,10 +248,15 @@ public class MainActivity extends AppCompatActivity {
         view.removeAllViews();
         Cursor cursor = inventoryDbHelper.getAllItems();
 
+        int layoutId = R.layout.item_view_list;
+        if (view.getTag().equals("item_view_grid")) {
+            layoutId = R.layout.item_view_grid;
+        }
+
         // TODO: Header logic removed due to 'new' list view. Setup filters
         if (cursor != null && cursor.moveToFirst()) {
             do {
-                view.addView(createInventoryItemView(cursor));
+                view.addView(createInventoryItemView(cursor, layoutId));
             } while (cursor.moveToNext());
         }
         cursor.close();
@@ -261,7 +289,7 @@ public class MainActivity extends AppCompatActivity {
                 String itemName = inputName.getText().toString();
                 int itemQuantity = Integer.parseInt(inputQuantity.getText().toString());
                 inventoryDbHelper.addItem(itemName, itemQuantity);
-                LinearLayout view = findViewById(R.id.list_view_layout);
+                ViewGroup view = findViewById(R.id.list_view_layout);
                 view.removeAllViews();
                 populateListViewWithInventoryItems(view);
             } catch (Exception e) {
