@@ -11,12 +11,13 @@
 
         <menu>
 
-        <!-- Menu item for Logout -->
+            <!-- Menu item for Logout -->
             <item
                 android:id="@+id/action_logout"
                 android:title="Logout"
                 app:showAsAction="never"/>
 
+            <!-- Menu item for switching layouts -->
             <item
                 android:id="@+id/action_change_layout"
                 android:title="Switch Layouts"

@@ -88,23 +88,30 @@ public class MainActivity extends AppCompatActivity {
         loginDbHelper = new LoginDatabaseHelper(this);
         inventoryDbHelper = new InventoryDatabaseHelper(this);
 
-        // Get LinearLayout view and populate it with inventory items
-        // TODO: Could not setup 'grid' layout and looks as list. Need to fix this.
+        // Get views and tag for future use
         linearLayout = findViewById(R.id.list_view_layout);
         linearLayout.setTag("item_view_list");
 
         gridLayout = findViewById(R.id.grid_view_layout);
         gridLayout.setTag("item_view_grid");
 
+        // Initial populate
         populateListViewWithInventoryItems(linearLayout);
 
         // On FAB press, show dialogue to add item to inventory
         findViewById(R.id.fab_main).setOnClickListener(v -> showAddItemDialog());
 
-        // TODO: Setup menu dialog with options to encompass both logout and layout preference
-
     }
 
+
+    /**
+     * Inflates the options menu and customizes the menu item icons. This includes
+     * setting up the menu layout and applying a white tint to the specified menu item icon.
+     *
+     * @param menu The menu into which the items are placed.
+     * @return A boolean value indicating whether the menu should be displayed. Returns
+     *         {@code true} if the menu should be displayed, otherwise calls the superclass implementation.
+     */
     @Override
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -120,6 +127,15 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+
+    /**
+     * Handles the selection of menu items in the options menu. Executes specific actions
+     * based on the selected item's title, such as logging out or toggling the user interface layout.
+     *
+     * @param item The {@link android.view.MenuItem} that was selected.
+     * @return A boolean indicating whether the event was handled. Returns {@code true} if
+     *         the event was consumed, otherwise invokes the superclass implementation.
+     */
     @Override
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         switch (String.valueOf(item.getTitle())) {
@@ -136,8 +152,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
+    /**
+     * This method is called when the user grants or denies the requested permissions; it
+     * checks if the SMS permission was granted and notifies the user via a
+     * toast message accordingly.
+     *
+     * @param requestCode The request code passed in {@code requestPermissions}.
+     * @param permissions The requested permissions array.
+     * @param grantResults The grant result status for each corresponding permission,
+     *                     either {@link PackageManager#PERMISSION_GRANTED} or
+     *                     {@link PackageManager#PERMISSION_DENIED}.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -150,6 +175,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    /**
+     * Toggles the visibility of the user interface between two layouts: a linear layout
+     * and a grid layout. Based on the current visible layout, the method hides it and
+     * displays the other layout, while also populating the newly displayed layout with
+     * inventory items.
+     *
+     * The method checks the visibility of the linear layout. If it is visible, it replaces
+     * it with the grid layout, and vice versa. The appropriate layout is populated with
+     * inventory items using the {@code populateListViewWithInventoryItems(ViewGroup view)}
+     * method.
+     */
     private void toggleView() {
         int visibleView = linearLayout.getVisibility();
         if (visibleView == View.VISIBLE) {
@@ -163,13 +200,29 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Verifies if user is logged in by checking shared preferences
+
+    /**
+     * Checks whether the user is currently logged in by retrieving the login status
+     * from shared preferences.
+     *
+     * @return {@code true} if the user is logged in; {@code false} otherwise.
+     */
     private boolean isUserLoggedIn() {
         SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
         return sharedPreferences.getBoolean("is_logged_in", false);
     }
 
-    // Logout method to clear user session and redirect to login activity
+
+    /**
+     * Logs the user out of the application by clearing the user session and navigating
+     * back to the login screen.
+     *
+     * This method performs the following actions:
+     * 1. Accesses the shared preferences to retrieve the user session.
+     * 2. Clears all stored session data.
+     * 3. Navigates to the {@link LoginActivity}.
+     * 4. Ends the current activity to prevent the user from returning to it through the back stack.
+     */
     private void logout() {
         SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -181,6 +234,16 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
+    /**
+     * Creates a custom view for an inventory item using the provided database cursor and layout identifier.
+     * Populates the view with item details such as name and quantity, and defines interactive logic for
+     * incrementing and decrementing the item quantity.
+     *
+     * @param cursor The {@link Cursor} object containing the data for the inventory item.
+     *               Must include columns "item_name" and "quantity".
+     * @param layoutId The resource ID of the layout to be inflated for the inventory item view.
+     * @return A {@link View} object representing the inventory item's custom layout.
+     */
     private View createInventoryItemView(Cursor cursor, int layoutId) {
         LayoutInflater inflater = LayoutInflater.from(this);
         View itemView = inflater.inflate(layoutId, null);
@@ -244,6 +307,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * Populates a specified view group with inventory items retrieved from the database.
+     * The method dynamically inflates item views based on the layout type, either list or grid,
+     * and adds them to the provided view group. Existing views in the view group
+     * are cleared before new views are added.
+     *
+     * @param view The {@link ViewGroup} where inventory item views will be added.
+     *             Must have a tag indicating the layout type (either "item_view_list" or "item_view_grid").
+     */
     private void populateListViewWithInventoryItems(ViewGroup view) {
         view.removeAllViews();
         Cursor cursor = inventoryDbHelper.getAllItems();
@@ -262,12 +334,22 @@ public class MainActivity extends AppCompatActivity {
         cursor.close();
     }
 
-    // Populates GridLayout with inventory items from SQLite database created in
-    // InventoryDatabaseHelper
-    // TODO: private void populateGridWithInventoryItems(View view) {}
 
-
-    // On FAB press, show dialogue to add item to inventory
+    /**
+     * Displays a dialog to add a new item to the inventory.
+     *
+     * The dialog includes input fields for the item name and quantity and validates that both fields
+     * are filled before allowing the user to save the data. If valid inputs are provided, the item is
+     * added to the inventory database. The method then updates the corresponding view to reflect the
+     * change in the inventory.
+     *
+     * The dialog has the following options:
+     * - "OK" button: Saves the item to the database and updates the view. Shows a toast message if input is invalid.
+     * - "Cancel" button: Dismisses the dialog without making any changes.
+     *
+     * Error handling: If an exception occurs while adding the item, the dialog is dismissed, and a
+     * toast message is displayed to indicate an error.
+     */
     private void showAddItemDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Add New Item");
@@ -306,9 +388,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    // Application Notification method to alert user if an item is out of stock
-    // and send SMS to a hardcoded phone number (temporary) as well as display a notification
-    // on the device.
+    /**
+     * Sends a notification to alert the user that a specified item is out of stock.
+     *
+     * The notification is created and displayed using the Android NotificationManager. It includes
+     * a title, content text indicating the item name, a small icon, and ensures visibility to the user.
+     * A notification channel is created for devices running Android O and above to manage notification settings.
+     *
+     * @param itemName The name of the item that is out of stock. This is displayed in the notification content.
+     */
     @SuppressLint("NotificationPermission") // Suppressing as minSDK is 34
     private void sendNotification(String itemName) {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -330,12 +418,26 @@ public class MainActivity extends AppCompatActivity {
 
 
     // TODO: Create method to obtain phone number from operator
+
+
+    /**
+     * Sends an SMS message to a specified phone number with a given message content.
+     *
+     * @param phoneNumber The recipient's phone number to which the SMS will be sent. Must be in a valid format.
+     * @param message The message content to be sent.*/
     private void sendSms(String phoneNumber, String message) {
         SmsManager smsManager = SmsManager.getDefault();
         smsManager.sendTextMessage(phoneNumber, null, message, null, null);
     }
 
 
+    /**
+     * Checks the quantity of a specified item and performs actions if the quantity is zero.
+     * Sends a notification and SMS message to alert that the item is out of stock.
+     *
+     * @param itemName The name of the item being checked.
+     * @param quantity The current quantity of the item to be evaluated.
+     */
     private void checkItemQuantity(String itemName, int quantity) {
         if (quantity == 0) {
             sendNotification(itemName);

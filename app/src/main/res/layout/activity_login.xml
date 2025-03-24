@@ -27,6 +27,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHeight_percent="0.80">
 
+        <!-- Company Header Section -->
         <TextView
             android:id="@+id/company_name"
             android:layout_width="match_parent"
@@ -37,6 +38,7 @@
             android:textStyle="bold"
             app:layout_constraintTop_toTopOf="parent"/>
 
+        <!-- Username Field -->
         <EditText
             android:id="@+id/username_field"
             android:layout_width="0dp"
@@ -48,6 +50,7 @@
             app:layout_constraintWidth_default="spread"
             app:layout_constraintWidth_percent="0.8"/>
 
+        <!-- Password Field -->
         <EditText
             android:id="@+id/password_field"
             android:layout_width="0dp"
@@ -60,7 +63,7 @@
             app:layout_constraintWidth_default="spread"
             app:layout_constraintWidth_percent="0.8"/>
 
-
+        <!-- Login button -->
         <Button
             android:id="@+id/login_button"
             android:layout_width="150dp"

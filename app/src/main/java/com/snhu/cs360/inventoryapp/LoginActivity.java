@@ -67,7 +67,13 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-    // Method to check if the database is empty
+    /**
+     * Determines if the application is being initialized for the first time by checking
+     * if the user database contains any records.
+     *
+     * @return true if there are no user records in the database, indicating a first-time setup;
+     *         false otherwise.
+     */
     private boolean isFirstTimeSetup() {
         Cursor cursor = loginDbHelper.getReadableDatabase().rawQuery("SELECT COUNT(*) FROM " + LoginDatabaseHelper.TABLE_USERS, null);
         if (cursor != null) {
@@ -80,7 +86,13 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-    // Method to authenticate user by checking username and password
+    /**
+     * Authenticates a user by verifying their credentials against the stored password in the database.
+     *
+     * @param username the username of the user attempting to authenticate
+     * @param password the plaintext password provided by the user for authentication
+     * @return true if the provided credentials match the stored credentials, false otherwise
+     */
     private boolean authenticateUser(String username, String password) {
         Cursor cursor = loginDbHelper.getUser(username);
         if (cursor.moveToFirst()) {
@@ -92,7 +104,13 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-    // Method to set user session and login
+    /**
+     * Logs in the user by updating the shared preferences to reflect the user's logged-in status.
+     *
+     * This method sets a flag in the shared preferences indicating that the user is logged in.
+     * The preference is stored under the key "is_logged_in" within the "user_session" shared preferences.
+     * Changes are committed asynchronously using the `apply` method.
+     */
     private void loginUser() {
         SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();

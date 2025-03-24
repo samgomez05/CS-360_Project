@@ -19,6 +19,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
+    <!-- Floating Action Button Section -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_main"
         android:layout_width="wrap_content"
@@ -46,13 +47,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
+                <!-- Section for "List" layout (default) -->
                 <LinearLayout
                     android:id="@+id/list_view_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    />
+                    android:orientation="vertical"/>
 
+                <!-- Section for "Grid" layout (hidden until toggled) -->
                 <GridLayout
                     android:id="@+id/grid_view_layout"
                     android:layout_width="match_parent"

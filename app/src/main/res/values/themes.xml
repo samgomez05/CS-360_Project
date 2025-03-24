@@ -12,6 +12,7 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <!-- Dropping overlapAnchor to false so that it falls under toolbar-->
         <item name="overlapAnchor">false</item>
     </style>
 </resources>

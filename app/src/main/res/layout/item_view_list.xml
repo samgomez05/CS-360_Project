@@ -15,6 +15,7 @@
         android:orientation="horizontal"
         android:padding="8dp">
 
+        <!-- Image Section -->
         <ImageView
             android:id="@+id/itemImageView"
             android:layout_width="80dp"

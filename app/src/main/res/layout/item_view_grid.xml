@@ -9,14 +9,13 @@
     cardview:cardUseCompatPadding="true"
     cardview:cardElevation="4dp"
     android:layout_rowWeight="1"
-    android:layout_columnWeight="1"
-    >
+    android:layout_columnWeight="1">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        >
+        android:layout_height="match_parent">
 
+        <!-- Image Section -->
         <ImageView
             android:id="@+id/itemImageView"
             android:layout_width="100dp"
@@ -24,9 +23,9 @@
             android:src="@drawable/ic_launcher_foreground"
             cardview:layout_constraintTop_toTopOf="parent"
             cardview:layout_constraintStart_toStartOf="parent"
-            cardview:layout_constraintEnd_toEndOf="parent"
-            />
+            cardview:layout_constraintEnd_toEndOf="parent"/>
 
+        <!-- Item Name -->
         <TextView
             android:id="@+id/itemNameTextView"
             android:layout_width="match_parent"
@@ -35,8 +34,7 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@android:color/black"
-            cardview:layout_constraintTop_toBottomOf="@id/itemImageView"
-            />
+            cardview:layout_constraintTop_toBottomOf="@id/itemImageView"/>
 
         <!-- Item Quantity -->
         <TextView
@@ -47,16 +45,15 @@
             android:textSize="14sp"
             android:textColor="@android:color/black"
             android:layout_marginTop="4dp"
-            cardview:layout_constraintTop_toBottomOf="@+id/itemNameTextView"
-            />
+            cardview:layout_constraintTop_toBottomOf="@+id/itemNameTextView"/>
 
+        <!-- Buttons section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             cardview:layout_constraintStart_toStartOf="parent"
             cardview:layout_constraintEnd_toEndOf="parent"
-            cardview:layout_constraintTop_toBottomOf="@id/itemQuantityTextView"
-            >
+            cardview:layout_constraintTop_toBottomOf="@id/itemQuantityTextView">
 
 
             <Button
@@ -71,9 +68,7 @@
                 android:textStyle="bold"
                 cardview:layout_constraintEnd_toStartOf="@+id/itemSubtractButton"
                 cardview:layout_constraintTop_toBottomOf="@+id/itemQuantityTextView"
-                android:layout_weight="1"
-
-                />
+                android:layout_weight="1"/>
 
             <Button
                 android:id="@+id/itemSubtractButton"
@@ -88,8 +83,7 @@
                 android:textStyle="bold"
                 cardview:layout_constraintStart_toEndOf="@+id/itemAddButton"
                 cardview:layout_constraintTop_toBottomOf="@id/itemQuantityTextView"
-                android:layout_weight="1"
-                />
+                android:layout_weight="1"/>
 
         </LinearLayout>
 

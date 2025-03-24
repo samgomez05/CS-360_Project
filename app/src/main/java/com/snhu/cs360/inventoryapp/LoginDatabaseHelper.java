@@ -30,7 +30,11 @@ public class LoginDatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    // Creates the users table
+    /**
+     * Creates the users table in the database if it does not already exist.
+     *
+     * @param db The SQLite database instance where the table will be created.
+     */
     @Override
     public void onCreate(SQLiteDatabase db) {
         String CREATE_TABLE = "CREATE TABLE " + TABLE_USERS + " (" +
@@ -40,7 +44,16 @@ public class LoginDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE);
     }
 
-    // Drop the users table if it exists and create a new one
+
+    /**
+     * Handles database upgrades when the schema version changes.
+     * This method drops the existing users table if it exists
+     * and recreates it by calling {@link #onCreate(SQLiteDatabase)}.
+     *
+     * @param db         The SQLite database instance being upgraded.
+     * @param oldVersion The current version of the database.
+     * @param newVersion The new version of the database to upgrade to.
+     */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
@@ -48,7 +61,13 @@ public class LoginDatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    // Adds a new user to the users table
+    /**
+     * Adds a new user to the database. The user's password is securely hashed
+     * before being stored.
+     *
+     * @param username The username of the new user to be added.
+     * @param password The plaintext password of the new user to be securely hashed and stored.
+     */
     public void addUser(String username, String password) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -59,6 +78,12 @@ public class LoginDatabaseHelper extends SQLiteOpenHelper {
     }
 
 
+    /**
+     * Retrieves a user record from the database based on the provided username.
+     *
+     * @param username The username of the user to be retrieved.
+     * @return A Cursor object containing the user record that matches the provided username.
+     */
     public Cursor getUser(String username) {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT * FROM " + TABLE_USERS + " WHERE " + COLUMN_USERNAME + " = ?";
@@ -66,7 +91,14 @@ public class LoginDatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    // Hashes the password using SHA-256 for secure store in db
+    /**
+     * Hashes a plaintext password using the SHA-256 algorithm to ensure secure storage.
+     * The resulting hash is returned as a hexadecimal string.
+     *
+     * @param password The plaintext password to be hashed.
+     * @return The SHA-256 hash of the given password as a hexadecimal string.
+     * @throws RuntimeException If the SHA-256 algorithm is not supported on the platform.
+     */
     public String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
