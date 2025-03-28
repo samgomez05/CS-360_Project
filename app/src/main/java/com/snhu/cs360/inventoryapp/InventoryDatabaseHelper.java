@@ -83,6 +83,16 @@ public class InventoryDatabaseHelper extends SQLiteOpenHelper {
     }
 
 
+    /**
+     * Searches the inventory table for items matching the given search query.
+     * This method performs a query on the "item_name" column using a SQL LIKE statement
+     * based on the provided search query.
+     *
+     * @param searchQuery The query string used to search for items in the inventory table.
+     *                    The search is case-insensitive and allows partial matches.
+     * @return A Cursor object containing the result set of items that match the search query.
+     *         If no items match, the Cursor will be empty but not null.
+     */
     public Cursor searchInventoryItems(String searchQuery) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query("inventory", null, "item_name LIKE ?", new String[] {"%" + searchQuery + "%"},

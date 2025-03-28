@@ -232,6 +232,26 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    /**
+     * Initializes the search view for filtering inventory items based on user input.
+     *
+     * This method sets up a SearchView component and associates it with an `OnQueryTextListener`
+     * to handle search queries. As the user interacts with the search field, it dynamically
+     * updates the displayed inventory items by querying the database and updating the adapter
+     * with the new cursor data.
+     *
+     * Functionality:
+     * - On text change in the search field:
+     *   - Executes a query on the inventory database using `inventoryDbHelper.searchInventoryItems`.
+     *   - Updates the `InventoryAdapter` of the associated `listView` with the new data to reflect
+     *     matching search results.
+     * - Does not take any additional actions on submitting the search query.
+     *
+     * Listener behavior:
+     * - `onQueryTextSubmit`: Currently not implemented but override required; always returns `false`.
+     * - `onQueryTextChange`: Queries the database for matches and refreshes the adapter.
+     */
     private void initSearchView() {
         SearchView searchView = (SearchView) findViewById(R.id.searchView);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
