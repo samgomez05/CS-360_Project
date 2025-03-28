@@ -1,21 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="12dp">
 
     <EditText
         android:id="@+id/input_item_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:maxWidth="480dp"
         android:hint="Item Name"
-        android:inputType="text"/>
+        android:inputType="text"
+        android:importantForAutofill="no"
+        tools:ignore="HardcodedText" />
+
+    <EditText
+        android:id="@+id/input_item_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:maxWidth="480dp"
+        android:hint="Item Description"
+        android:inputType="text"
+        android:importantForAutofill="no"
+        tools:ignore="HardcodedText" />
 
     <EditText
         android:id="@+id/input_item_quantity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:maxWidth="480dp"
         android:hint="Item Quantity"
-        android:inputType="number"/>
+        android:inputType="number"
+        android:importantForAutofill="no"
+        tools:ignore="HardcodedText" />
+
 </LinearLayout>

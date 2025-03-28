@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -49,19 +48,16 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         // Login button click listener to authenticate user and login
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String username = usernameField.getText().toString();
-                String password = passwordField.getText().toString();
-                if (authenticateUser(username, password)) {
-                    loginUser();
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    Toast.makeText(LoginActivity.this, "Invalid username or password", Toast.LENGTH_SHORT).show();
-                }
+        loginButton.setOnClickListener(v -> {
+            String username = usernameField.getText().toString();
+            String password = passwordField.getText().toString();
+            if (authenticateUser(username, password)) {
+                loginUser();
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+            } else {
+                Toast.makeText(LoginActivity.this, "Invalid username or password", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -7,13 +7,13 @@
     android:background="@color/white"
     cardview:cardUseCompatPadding="true"
     cardview:cardCornerRadius="4dp"
+    cardview:contentPadding="6dp"
     cardview:cardElevation="5dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="8dp">
+        android:orientation="horizontal">
 
         <!-- Image Section -->
         <ImageView
@@ -24,7 +24,7 @@
             android:contentDescription="@string/item_image"
             android:src="@drawable/ic_launcher_foreground"
             android:scaleType="centerCrop"
-            android:layout_marginEnd="8dp"/>
+            android:layout_marginEnd="6dp"/>
 
         <!-- Text and Button Section -->
         <LinearLayout
@@ -32,8 +32,7 @@
             android:layout_height="wrap_content"
             android:weightSum="1"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:paddingEnd="8dp">
+            android:orientation="vertical">
 
             <!-- Item Name -->
             <TextView
@@ -45,6 +44,17 @@
                 android:textStyle="bold"
                 android:textColor="@android:color/black" />
 
+            <!-- Item Name -->
+            <TextView
+                android:id="@+id/itemDescriptionTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/item_description"
+                android:textSize="14sp"
+                android:textStyle="italic"
+                android:textColor="@android:color/black"
+                android:layout_marginTop="4dp"/>
+
             <!-- Item Quantity -->
             <TextView
                 android:id="@+id/itemQuantityTextView"
@@ -52,15 +62,14 @@
                 android:layout_height="wrap_content"
                 android:text="@string/quantity"
                 android:textSize="14sp"
-                android:textColor="@android:color/black"
-                android:layout_marginTop="4dp" />
+                android:textColor="@android:color/black" />
 
             <!-- Button Layout -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="8dp">
+                android:layout_marginTop="4dp">
 
                 <Button
                     android:id="@+id/itemAddButton"

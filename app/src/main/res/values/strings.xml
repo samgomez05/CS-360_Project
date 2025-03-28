@@ -8,5 +8,6 @@
     <!-- For Item View Cards -->
     <string name="itemAdd">+</string>
     <string name="itemSubtract">-</string>
+    <string name="item_description">Item Description</string>
 
 </resources>

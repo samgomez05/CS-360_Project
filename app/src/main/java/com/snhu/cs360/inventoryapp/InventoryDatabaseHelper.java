@@ -20,9 +20,10 @@ public class InventoryDatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "inventory.db";
     private static final int DATABASE_VERSION = 1;
     private static final String TABLE_INVENTORY = "inventory";
-    private static final String COLUMN_ID = "id";
+    private static final String COLUMN_ID = "_id";
     private static final String COLUMN_ITEM_NAME = "item_name";
-    private static final String COLUMN_QUANTITY = "quantity";
+    private static final String COLUMN_QUANTITY = "item_quantity";
+    private static final String COLUMN_DESCRIPTION = "item_description";
 
 
     public InventoryDatabaseHelper(Context context) {
@@ -42,6 +43,7 @@ public class InventoryDatabaseHelper extends SQLiteOpenHelper {
         String CREATE_TABLE = "CREATE TABLE " + TABLE_INVENTORY + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_ITEM_NAME + " TEXT NOT NULL, " +
+                COLUMN_DESCRIPTION + " TEXT, " +
                 COLUMN_QUANTITY + " INTEGER NOT NULL)";
         db.execSQL(CREATE_TABLE);
         if (isTableEmpty(db)) {
@@ -70,30 +72,36 @@ public class InventoryDatabaseHelper extends SQLiteOpenHelper {
 
 
     /**
+     * Retrieves all items from the inventory table in the database.
+     *
+     * @return A Cursor object containing the result set of items from the inventory table.
+     */
+    public Cursor getAllInventoryItems() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.query("inventory", null, null, null,
+                null, null, null);
+    }
+
+
+    /**
      * Inserts a new item into the inventory table in the database.
      *
      * @param itemName The name of the item to be added to the inventory.
      * @param quantity The quantity of the item to be added to the inventory.
      */
-    public void addItem(String itemName, int quantity) {
+    public void addItem(String itemName, String itemDescription, int quantity) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_ITEM_NAME, itemName);
         values.put(COLUMN_QUANTITY, quantity);
-        db.insert(TABLE_INVENTORY, null, values);
-        db.close();
-    }
-
-
-    /**
-     * Retrieves all items from the inventory table in the database.
-     *
-     * @return A Cursor object containing the result set of items from the inventory table.
-     */
-    public Cursor getAllItems() {
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_INVENTORY;
-        return db.rawQuery(query, null);
+        values.put(COLUMN_DESCRIPTION, itemDescription);
+        try {
+            db.insert(TABLE_INVENTORY, null, values);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            db.close();
+        }
     }
 
 
@@ -122,11 +130,16 @@ public class InventoryDatabaseHelper extends SQLiteOpenHelper {
      */
     private void insertSampleItems(SQLiteDatabase db) {
         // TODO: Method needs updating to suggest to user if they want to insert sample items
-        for (int i = 1; i <= 20; i++) {
-            ContentValues values = new ContentValues();
-            values.put(COLUMN_ITEM_NAME, "Item " + i);
-            values.put(COLUMN_QUANTITY, i * 10);
-            db.insert(TABLE_INVENTORY, null, values);
+        try {
+            for (int i = 1; i <= 20; i++) {
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_ITEM_NAME, "Item " + i);
+                values.put(COLUMN_DESCRIPTION, "Description of Item " + i);
+                values.put(COLUMN_QUANTITY, i * 10);
+                db.insert(TABLE_INVENTORY, null, values);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -141,7 +154,12 @@ public class InventoryDatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_QUANTITY, newQuantity);
-        db.update(TABLE_INVENTORY, values, COLUMN_ITEM_NAME + " = ?", new String[]{itemName});
-        db.close();
+        try {
+            db.update(TABLE_INVENTORY, values, COLUMN_ITEM_NAME + " = ?", new String[]{itemName});
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            db.close();
+        }
     }
 }

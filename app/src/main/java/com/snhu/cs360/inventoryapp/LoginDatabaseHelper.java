@@ -20,7 +20,7 @@ public class LoginDatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "login.db";
     private static final int DATABASE_VERSION = 1;
     public static final String TABLE_USERS = "users";
-    private static final String COLUMN_ID = "id";
+    private static final String COLUMN_ID = "_id";
     private static final String COLUMN_USERNAME = "username";
     private static final String COLUMN_PASSWORD = "password";
 
@@ -69,6 +69,7 @@ public class LoginDatabaseHelper extends SQLiteOpenHelper {
      * @param password The plaintext password of the new user to be securely hashed and stored.
      */
     public void addUser(String username, String password) {
+        // TODO: Method to initialize a new user, not just the default 'admin'
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_USERNAME, username);
