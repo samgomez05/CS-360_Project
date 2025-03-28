@@ -19,6 +19,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
@@ -60,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
         // Properly set custom toolbar
         MaterialToolbar toolbar = findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
+
+        // Initialize search toolbar
+        initSearchView();
 
         // Request SMS and Notification permissions from user
         // Needed as an array as only one permission was being asked upon login
@@ -217,6 +221,21 @@ public class MainActivity extends AppCompatActivity {
             gridView.setAdapter(adapter);
         }
 
+    }
+
+    private void initSearchView() {
+        SearchView searchView = (SearchView) findViewById(R.id.searchView);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String search) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String search) {
+                return false;
+            }
+        });
     }
 
 
