@@ -6,21 +6,26 @@
         android:id="@+id/activity_main_menu"
         android:icon="@mipmap/_326672_menu"
         android:title=""
-        app:showAsAction="always"
-        >
+        app:showAsAction="always">
 
         <menu>
 
-            <!-- Menu item for Logout -->
+            <!-- Menu item for Item Name Search, toggle SearchView bar visibility -->
             <item
-                android:id="@+id/action_logout"
-                android:title="Logout"
+                android:id="@+id/action_search"
+                android:title="Search by Item Name"
                 app:showAsAction="never"/>
 
             <!-- Menu item for switching layouts -->
             <item
                 android:id="@+id/action_change_layout"
                 android:title="Switch Layouts"
+                app:showAsAction="never"/>
+
+            <!-- Menu item for Logout -->
+            <item
+                android:id="@+id/action_logout"
+                android:title="Logout"
                 app:showAsAction="never"/>
 
         </menu>

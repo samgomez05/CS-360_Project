@@ -129,6 +129,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         switch (String.valueOf(item.getTitle())) {
+            case "Search by Item Name":
+                SearchView searchView = findViewById(R.id.searchView);
+                if (searchView.getVisibility() == View.GONE) {
+                    searchView.setVisibility(View.VISIBLE);
+                } else {
+                    searchView.setVisibility(View.GONE);
+                }
+                break;
+
             case "Switch Layouts":
                 if (listView.getVisibility() == View.VISIBLE) {
                     listView.setVisibility(View.GONE);
