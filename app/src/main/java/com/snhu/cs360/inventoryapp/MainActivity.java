@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
     private InventoryDatabaseHelper inventoryDbHelper;
     private static final int SMS_PERMISSION_CODE = 100;
 
+    private static boolean sortAscending;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,6 +140,11 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
 
+            case "Sort by Item Name":
+                sortAscending = !sortAscending;
+                displayDatabaseItems();
+                break;
+
             case "Switch Layouts":
                 if (listView.getVisibility() == View.VISIBLE) {
                     listView.setVisibility(View.GONE);
@@ -222,6 +229,8 @@ public class MainActivity extends AppCompatActivity {
         // Create adapter to display each item received by the cursor
         InventoryAdapter adapter = new InventoryAdapter(this, layoutId, cursor, fromColumns,
                 toViews, 0, inventoryDbHelper);
+
+        adapter.sortByName(sortAscending);
 
         // Set data to listView, everything in adapter
         if (listView.getVisibility() == View.VISIBLE) {

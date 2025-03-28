@@ -16,6 +16,12 @@
                 android:title="Search by Item Name"
                 app:showAsAction="never"/>
 
+            <!-- Menu item for Item Name Search, toggle SearchView bar visibility -->
+            <item
+                android:id="@+id/action_sort"
+                android:title="Sort by Item Name"
+                app:showAsAction="never"/>
+
             <!-- Menu item for switching layouts -->
             <item
                 android:id="@+id/action_change_layout"

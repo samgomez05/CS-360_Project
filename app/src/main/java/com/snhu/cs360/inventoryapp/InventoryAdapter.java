@@ -62,6 +62,7 @@ public class InventoryAdapter extends SimpleCursorAdapter {
                 dbHelper.updateItemQuantity(itemName, newQuantity);
                 refreshCursor();
 
+                // Send notifications if item stock reaches 0.
                 if (newQuantity == 0) {
                     sendNotification(context, "Inventory Update", itemName +
                             " has run out of stock!");
@@ -69,6 +70,45 @@ public class InventoryAdapter extends SimpleCursorAdapter {
                 }
             }
         });
+    }
+
+
+    /**
+     * Replaces the current Cursor with a new Cursor provided as a parameter.
+     * The existing Cursor is closed to release resources before assigning the new one.
+     *
+     * @param cursor The new Cursor object to be used by the adapter.
+     *               It holds the data that will be displayed within the adapter.
+     */
+    @Override
+    public void changeCursor(Cursor cursor) {
+        if(getCursor() != null) {
+            getCursor().close();
+        }
+        super.changeCursor(cursor);
+    }
+
+
+    /**
+     * Sorts the inventory by item name and refreshes the ListView or GridView.
+     *
+     * @param ascending If true, sorts in ascending order, else descending.
+     */
+    public void sortByName(boolean ascending) {
+        // Query sorted data from the database
+        String sortOrder = ascending ? "ASC" : "DESC";
+        Cursor sortedCursor = dbHelper.getReadableDatabase().query(
+                "inventory",     // Table name
+                null,            // Columns (null = all columns)
+                null,            // Selection (null = no condition)
+                null,            // Selection arguments
+                null,            // Group By
+                null,            // Having
+                "item_name " + sortOrder // Order By clause
+        );
+
+        // Replace the adapter's Cursor with the sorted one
+        changeCursor(sortedCursor);
     }
 
 
@@ -86,22 +126,6 @@ public class InventoryAdapter extends SimpleCursorAdapter {
         Cursor cursor = dbHelper.getAllInventoryItems();
         changeCursor(cursor);
 
-    }
-
-
-    /**
-     * Replaces the current Cursor with a new Cursor provided as a parameter.
-     * The existing Cursor is closed to release resources before assigning the new one.
-     *
-     * @param cursor The new Cursor object to be used by the adapter.
-     *               It holds the data that will be displayed within the adapter.
-     */
-    @Override
-    public void changeCursor(Cursor cursor) {
-        if(getCursor() != null) {
-            getCursor().close();
-        }
-        super.changeCursor(cursor);
     }
 
 
