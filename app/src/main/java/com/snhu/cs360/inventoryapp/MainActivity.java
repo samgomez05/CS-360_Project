@@ -233,6 +233,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String search) {
+                Cursor cursor = inventoryDbHelper.searchInventoryItems(search);
+                InventoryAdapter adapter = (InventoryAdapter) listView.getAdapter();
+                if (listView.getVisibility() != View.VISIBLE) {
+                    adapter = (InventoryAdapter) gridView.getAdapter();
+                }
+                adapter.swapCursor(cursor);
                 return false;
             }
         });

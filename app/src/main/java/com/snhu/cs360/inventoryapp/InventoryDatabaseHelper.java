@@ -83,6 +83,13 @@ public class InventoryDatabaseHelper extends SQLiteOpenHelper {
     }
 
 
+    public Cursor searchInventoryItems(String searchQuery) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.query("inventory", null, "item_name LIKE ?", new String[] {"%" + searchQuery + "%"},
+                null, null, null);
+    }
+
+
     /**
      * Inserts a new item into the inventory table in the database.
      *
