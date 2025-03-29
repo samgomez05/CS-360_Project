@@ -9,4 +9,7 @@
     <!-- For Item View Cards -->
     <color name="itemAddButtonColor">#238823</color>
     <color name="itemSubtractButtonColor">#D2222D</color>
+
+    <!-- For filter buttons -->
+    <color name="filterButtonGray">#D9D9D9</color>
 </resources>
