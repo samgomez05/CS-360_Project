@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.GridView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -41,8 +42,9 @@ public class MainActivity extends AppCompatActivity {
     private GridView gridView;
 
     private InventoryDatabaseHelper inventoryDbHelper;
-    private static final int SMS_PERMISSION_CODE = 100;
+    private InventoryAdapter inventoryAdapter;
 
+    private static final int SMS_PERMISSION_CODE = 100;
     private static boolean sortAscending;
 
 
@@ -93,6 +95,11 @@ public class MainActivity extends AppCompatActivity {
         // On FAB press, show dialogue to add item to inventory
         findViewById(R.id.fab_main).setOnClickListener(v -> showAddItemDialog());
 
+        // Link buttons in view with actions
+        findViewById(R.id.filterByElectronics).setOnClickListener(v -> applyFilter("electronics"));
+        findViewById(R.id.filterByOffice).setOnClickListener(v -> applyFilter("office"));
+        findViewById(R.id.resetFilter).setOnClickListener(v -> displayDatabaseItems());
+
     }
 
 
@@ -133,10 +140,13 @@ public class MainActivity extends AppCompatActivity {
         switch (String.valueOf(item.getTitle())) {
             case "Search and Filters":
                 SearchView searchView = findViewById(R.id.searchView);
+                LinearLayout filterView = findViewById(R.id.filterView);
                 if (searchView.getVisibility() == View.GONE) {
                     searchView.setVisibility(View.VISIBLE);
+                    filterView.setVisibility(View.VISIBLE);
                 } else {
                     searchView.setVisibility(View.GONE);
+                    filterView.setVisibility(View.GONE);
                 }
                 break;
 
@@ -227,16 +237,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Create adapter to display each item received by the cursor
-        InventoryAdapter adapter = new InventoryAdapter(this, layoutId, cursor, fromColumns,
+        inventoryAdapter = new InventoryAdapter(this, layoutId, cursor, fromColumns,
                 toViews, 0, inventoryDbHelper);
 
-        adapter.sortByName(sortAscending);
+        inventoryAdapter.sortByName(sortAscending);
 
         // Set data to listView, everything in adapter
         if (listView.getVisibility() == View.VISIBLE) {
-            listView.setAdapter(adapter);
+            listView.setAdapter(inventoryAdapter);
         } else {
-            gridView.setAdapter(adapter);
+            gridView.setAdapter(inventoryAdapter);
         }
 
     }
@@ -280,6 +290,19 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+    }
+
+
+    /**
+     * Applies a filter to the inventory data based on the given category. This method
+     * utilizes the inventory adapter to display only the inventory items that match
+     * the specified category criteria.
+     *
+     * @param category The category to filter the inventory items by. Only items
+     *                 belonging to this category will be displayed.
+     */
+    private void applyFilter(String category) {
+        inventoryAdapter.filter(category);
     }
 
 
