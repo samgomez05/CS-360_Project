@@ -10,13 +10,13 @@
 
         <menu>
 
-            <!-- Menu item for Item Name Search, toggle SearchView bar visibility -->
+            <!-- Menu item for Search and Filter, toggle SearchView and filter bar visibility -->
             <item
                 android:id="@+id/action_search"
-                android:title="Search by Item Name"
+                android:title="Search and Filters"
                 app:showAsAction="never"/>
 
-            <!-- Menu item for Item Name Search, toggle SearchView bar visibility -->
+            <!-- Menu item for Item Name sorting -->
             <item
                 android:id="@+id/action_sort"
                 android:title="Sort by Item Name"
