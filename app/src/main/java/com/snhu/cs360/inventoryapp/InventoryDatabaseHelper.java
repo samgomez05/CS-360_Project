@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.Random;
+
 public class InventoryDatabaseHelper extends SQLiteOpenHelper {
     //
     // Author:   Samuel Gomez
@@ -19,11 +21,13 @@ public class InventoryDatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "inventory.db";
     private static final int DATABASE_VERSION = 1;
+
     private static final String TABLE_INVENTORY = "inventory";
     private static final String COLUMN_ID = "_id";
     private static final String COLUMN_ITEM_NAME = "item_name";
     private static final String COLUMN_QUANTITY = "item_quantity";
     private static final String COLUMN_DESCRIPTION = "item_description";
+    private static final String COLUMN_ITEM_CATEGORY = "item_category";
 
 
     public InventoryDatabaseHelper(Context context) {
@@ -44,6 +48,7 @@ public class InventoryDatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_ITEM_NAME + " TEXT NOT NULL, " +
                 COLUMN_DESCRIPTION + " TEXT, " +
+                COLUMN_ITEM_CATEGORY + " TEXT, " +
                 COLUMN_QUANTITY + " INTEGER NOT NULL)";
         db.execSQL(CREATE_TABLE);
         if (isTableEmpty(db)) {
@@ -101,6 +106,25 @@ public class InventoryDatabaseHelper extends SQLiteOpenHelper {
 
 
     /**
+     * Retrieves filtered items from the inventory table based on a specified filter value.
+     * The method queries the database for items that belong to a specific category
+     * where the category matches the provided filter value.
+     *
+     * @param filterValue The value used to filter items in the inventory based on the "item_category" column.
+     *                    This parameter specifies the category of items to include in the result set.
+     * @return A Cursor object containing the result set of items that match the specified filter value.
+     *         If no items match, the Cursor will be empty but not null.
+     */
+    public Cursor getFilteredInventoryItems(String filterValue) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // Query based on filterColumn = filterValue
+        return db.query("inventory", null, "item_category = ?", new String[] {filterValue},
+                null, null, null);
+    }
+
+
+    /**
      * Inserts a new item into the inventory table in the database.
      *
      * @param itemName The name of the item to be added to the inventory.
@@ -112,6 +136,10 @@ public class InventoryDatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_ITEM_NAME, itemName);
         values.put(COLUMN_QUANTITY, quantity);
         values.put(COLUMN_DESCRIPTION, itemDescription);
+
+        // TODO: Add item dialog for column "item_category"
+        values.put(COLUMN_ITEM_CATEGORY, "");
+
         try {
             db.insert(TABLE_INVENTORY, null, values);
         } catch (Exception e) {
@@ -147,12 +175,21 @@ public class InventoryDatabaseHelper extends SQLiteOpenHelper {
      */
     private void insertSampleItems(SQLiteDatabase db) {
         // TODO: Method needs updating to suggest to user if they want to insert sample items
+
         try {
             for (int i = 1; i <= 20; i++) {
                 ContentValues values = new ContentValues();
                 values.put(COLUMN_ITEM_NAME, "Item " + i);
                 values.put(COLUMN_DESCRIPTION, "Description of Item " + i);
                 values.put(COLUMN_QUANTITY, i * 10);
+
+                // Temporarily set random category out of three
+                String[] categories = {"electronics", "office", "other"};
+                Random random = new Random();
+                int randomIndex = random.nextInt(categories.length);
+                String category = categories[randomIndex];
+                values.put(COLUMN_ITEM_CATEGORY, category);
+
                 db.insert(TABLE_INVENTORY, null, values);
             }
         } catch (Exception e) {

@@ -113,6 +113,20 @@ public class InventoryAdapter extends SimpleCursorAdapter {
 
 
     /**
+     * Filters the inventory items based on the specified category and updates the adapter
+     * with the resulting set of filtered items.
+     *
+     * @param category The category used to filter inventory items. Only items belonging
+     *                 to this category will be included in the updated dataset.
+     */
+    public void filter(String category) {
+        // Retrieve the filtered cursor from the database
+        Cursor filteredCursor = dbHelper.getFilteredInventoryItems(category);
+        changeCursor(filteredCursor);
+    }
+
+
+    /**
      * Refreshes the Cursor used by the adapter by retrieving the latest set of inventory items
      * from the database and updating the adapter with the new Cursor.
      *
