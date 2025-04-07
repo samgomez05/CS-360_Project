@@ -27,3 +27,6 @@ replay_pid*
 
 # macos files
 .DS_Store
+
+# Google Services file for extra security
+**/google-services.json
