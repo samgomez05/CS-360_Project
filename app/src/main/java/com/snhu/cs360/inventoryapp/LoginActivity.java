@@ -14,11 +14,13 @@ import com.google.android.material.appbar.MaterialToolbar;
 
 public class LoginActivity extends AppCompatActivity {
 
-    //
-    // Author:   Samuel Gomez
-    // Company:  Southern New Hampshire University
-    // Course:   CS-360
-    //
+    /*
+     *
+     * Author:   Samuel Gomez
+     * Company:  Southern New Hampshire University
+     * Course:   CS-360
+     *
+     */
 
     private LoginDatabaseHelper loginDbHelper;
     private EditText usernameField;
@@ -66,7 +68,7 @@ public class LoginActivity extends AppCompatActivity {
     /**
      * Determines if the application is being initialized for the first time by checking
      * if the user database contains any records.
-     *
+     * <p>
      * @return true if there are no user records in the database, indicating a first-time setup;
      *         false otherwise.
      */
@@ -84,7 +86,7 @@ public class LoginActivity extends AppCompatActivity {
 
     /**
      * Authenticates a user by verifying their credentials against the stored password in the database.
-     *
+     * <p>
      * @param username the username of the user attempting to authenticate
      * @param password the plaintext password provided by the user for authentication
      * @return true if the provided credentials match the stored credentials, false otherwise
@@ -102,7 +104,7 @@ public class LoginActivity extends AppCompatActivity {
 
     /**
      * Logs in the user by updating the shared preferences to reflect the user's logged-in status.
-     *
+     * <p>
      * This method sets a flag in the shared preferences indicating that the user is logged in.
      * The preference is stored under the key "is_logged_in" within the "user_session" shared preferences.
      * Changes are committed asynchronously using the `apply` method.

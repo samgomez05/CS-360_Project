@@ -11,11 +11,13 @@ import java.security.NoSuchAlgorithmException;
 
 public class LoginDatabaseHelper extends SQLiteOpenHelper {
 
-    //
-    // Author:   Samuel Gomez
-    // Company:  Southern New Hampshire University
-    // Course:   CS-360
-    //
+    /*
+     *
+     * Author:   Samuel Gomez
+     * Company:  Southern New Hampshire University
+     * Course:   CS-360
+     *
+     */
 
     private static final String DATABASE_NAME = "login.db";
     private static final int DATABASE_VERSION = 1;
@@ -32,7 +34,7 @@ public class LoginDatabaseHelper extends SQLiteOpenHelper {
 
     /**
      * Creates the users table in the database if it does not already exist.
-     *
+     * <p>
      * @param db The SQLite database instance where the table will be created.
      */
     @Override
@@ -49,7 +51,7 @@ public class LoginDatabaseHelper extends SQLiteOpenHelper {
      * Handles database upgrades when the schema version changes.
      * This method drops the existing users table if it exists
      * and recreates it by calling {@link #onCreate(SQLiteDatabase)}.
-     *
+     * <p>
      * @param db         The SQLite database instance being upgraded.
      * @param oldVersion The current version of the database.
      * @param newVersion The new version of the database to upgrade to.
@@ -64,7 +66,7 @@ public class LoginDatabaseHelper extends SQLiteOpenHelper {
     /**
      * Adds a new user to the database. The user's password is securely hashed
      * before being stored.
-     *
+     * <p>
      * @param username The username of the new user to be added.
      * @param password The plaintext password of the new user to be securely hashed and stored.
      */
@@ -81,7 +83,7 @@ public class LoginDatabaseHelper extends SQLiteOpenHelper {
 
     /**
      * Retrieves a user record from the database based on the provided username.
-     *
+     * <p>
      * @param username The username of the user to be retrieved.
      * @return A Cursor object containing the user record that matches the provided username.
      */
@@ -95,7 +97,7 @@ public class LoginDatabaseHelper extends SQLiteOpenHelper {
     /**
      * Hashes a plaintext password using the SHA-256 algorithm to ensure secure storage.
      * The resulting hash is returned as a hexadecimal string.
-     *
+     * <p>
      * @param password The plaintext password to be hashed.
      * @return The SHA-256 hash of the given password as a hexadecimal string.
      * @throws RuntimeException If the SHA-256 algorithm is not supported on the platform.
