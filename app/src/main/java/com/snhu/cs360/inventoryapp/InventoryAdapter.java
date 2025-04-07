@@ -1,196 +1,129 @@
 package com.snhu.cs360.inventoryapp;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Context;
-import android.database.Cursor;
-import android.telephony.SmsManager;
 import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
-import androidx.core.app.NotificationCompat;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.List;
 
 
-public class InventoryAdapter extends SimpleCursorAdapter {
+/**
+ * Custom adapter class for managing and displaying a list of inventory items in a RecyclerView.
+ * It supports switching between list and grid view modes and interacts with a Firebase
+ * database to update inventory item data in real-time.
+ */
+public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.ViewHolder> {
 
-    private final InventoryDatabaseHelper dbHelper;
-    private final LayoutInflater inflater;
+    private List<InventoryItem> mInventoryList;
+    private FirebaseDatabaseHelper mFirebaseDatabaseHelper;
+    private boolean isListView;
 
-    public InventoryAdapter(Context context, int layout, Cursor c, String[] from, int[] to, int flags, InventoryDatabaseHelper dbHelper) {
-        super(context, layout, c, from, to, flags);
-        this.dbHelper = dbHelper;
-        this.inflater = LayoutInflater.from(context);
+    public InventoryAdapter(List<InventoryItem> inventoryList, boolean isListView) {
+        mInventoryList = inventoryList;
+        this.isListView = isListView;
+        mFirebaseDatabaseHelper = new FirebaseDatabaseHelper("inventory");
     }
 
 
     /**
-     * Binds data from the provided Cursor to the given View for display purposes. This includes setting
-     * text values for specific TextViews and attaching onClickListener events to Buttons for updating item
-     * quantities in the database.
-     *
-     * @param view   The view into which the data should be bound, typically associated with a list item.
-     * @param context The context in which the method is operating, used for accessing resources and sending notifications.
-     * @param cursor  The Cursor containing the data to be displayed. It is positioned at the correct row.
+     * ViewHolder subclass for the InventoryAdapter, used to hold and manage the Views that represent
+     * an individual item in the Inventory list within the RecyclerView.
+     * <p>
+     * This class provides member variables for accessing TextViews and Buttons associated with
+     * an inventory item, such as item name, description, quantity, and actions for increasing or
+     * decreasing the item quantity.
+     */
+    public class ViewHolder extends RecyclerView.ViewHolder {
+
+        public TextView itemNameTextView;
+        public TextView itemDescriptionTextView;
+        public TextView itemQuantityTextView;
+        public Button itemAddButton;
+        public Button itemSubtractButton;
+
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+
+            itemNameTextView = itemView.findViewById(R.id.itemNameTextView);
+            itemDescriptionTextView = itemView.findViewById(R.id.itemDescriptionTextView);
+            itemQuantityTextView = itemView.findViewById(R.id.itemQuantityTextView);
+            itemAddButton = itemView.findViewById(R.id.itemAddButton);
+            itemSubtractButton = itemView.findViewById(R.id.itemSubtractButton);
+
+        }
+    }
+
+
+    /**
+     * Creates and returns a new ViewHolder for representing an inventory item in the RecyclerView.
+     * This method inflates the layout based on the current view mode (list or grid).
+     * <p>
+     * @param parent The ViewGroup into which the new View will be added after it is bound to an adapter position.
+     * @param viewType The view type of the new View. This parameter is not used directly in this method.
+     * @return A new instance of InventoryAdapter.ViewHolder for holding the inflated inventory item View.
+     */
+    @NonNull
+    @Override
+    public InventoryAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        Context context = parent.getContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
+
+        int layoutId = isListView ? R.layout.item_view_list : R.layout.item_view_grid;
+        View inventoryItemView = inflater.inflate(layoutId, parent, false);
+
+        return new ViewHolder(inventoryItemView);
+    }
+
+
+    /**
+     * Binds the data from the inventory item list to the respective views in the ViewHolder.
+     * This method is called by the RecyclerView to display the data at the specified position.
+     * It also handles increment and decrement actions for the item's quantity, updating both the
+     * local item list and the Firebase database, and refreshing the item view.
+     * <p>
+     * @param holder The ViewHolder which should be updated to represent the contents of the
+     *               inventory item at the given position in the dataset.
+     * @param position The position of the inventory item within the adapter's data set.
      */
     @Override
-    public void bindView(android.view.View view, Context context, Cursor cursor) {
-        TextView itemNameTextView = view.findViewById(R.id.itemNameTextView);
-        String itemName = cursor.getString(cursor.getColumnIndexOrThrow("item_name"));
-        itemNameTextView.setText(itemName);
+    public void onBindViewHolder(@NonNull InventoryAdapter.ViewHolder holder, int position) {
+        InventoryItem currentItem = mInventoryList.get(position);
 
-        TextView itemDescriptionTextView = view.findViewById(R.id.itemDescriptionTextView);
-        String itemDescription = cursor.getString(cursor.getColumnIndexOrThrow("item_description"));
-        itemDescriptionTextView.setText(itemDescription);
+        holder.itemNameTextView.setText(currentItem.getName());
+        holder.itemDescriptionTextView.setText(currentItem.getDescription());
+        holder.itemQuantityTextView.setText(String.valueOf(currentItem.getQuantity()));
 
-        TextView itemQuantityTextView = view.findViewById(R.id.itemQuantityTextView);
-        int itemQuantity = cursor.getInt(cursor.getColumnIndexOrThrow("item_quantity"));
-        itemQuantityTextView.setText(String.valueOf(itemQuantity));
-
-        Button itemAddButton = view.findViewById(R.id.itemAddButton);
-        itemAddButton.setOnClickListener(v -> {
-            int newQuantity = itemQuantity + 1;
-            dbHelper.updateItemQuantity(itemName, newQuantity);
-            refreshCursor();
+        holder.itemAddButton.setOnClickListener(v -> {
+            currentItem.setQuantity(currentItem.getQuantity() + 1);
+            mFirebaseDatabaseHelper.updateItem(currentItem.getId(), currentItem);
+            notifyItemChanged(position);
         });
 
-        Button itemSubtractButton = view.findViewById(R.id.itemSubtractButton);
-        itemSubtractButton.setOnClickListener(v -> {
-            int newQuantity = itemQuantity - 1;
-            if (newQuantity >= 0) {
-                dbHelper.updateItemQuantity(itemName, newQuantity);
-                refreshCursor();
-
-                // Send notifications if item stock reaches 0.
-                if (newQuantity == 0) {
-                    sendNotification(context, "Inventory Update", itemName +
-                            " has run out of stock!");
-                    sendSms("+12024561111", "Hi, " + itemName + " has run out of stock!");
-                }
+        holder.itemSubtractButton.setOnClickListener(v -> {
+            if (currentItem.getQuantity() >= 0) {
+                currentItem.setQuantity(currentItem.getQuantity() - 1);
+                mFirebaseDatabaseHelper.updateItem(currentItem.getId(), currentItem);
+                notifyItemChanged(position);
             }
         });
+
     }
 
 
     /**
-     * Replaces the current Cursor with a new Cursor provided as a parameter.
-     * The existing Cursor is closed to release resources before assigning the new one.
-     *
-     * @param cursor The new Cursor object to be used by the adapter.
-     *               It holds the data that will be displayed within the adapter.
+     * Returns the total number of items in the inventory list.
+     * <p>
+     * @return The size of the inventory list, representing the total number of items.
      */
     @Override
-    public void changeCursor(Cursor cursor) {
-        if(getCursor() != null) {
-            getCursor().close();
-        }
-        super.changeCursor(cursor);
-    }
-
-
-    /**
-     * Sorts the inventory by item name and refreshes the ListView or GridView.
-     *
-     * @param ascending If true, sorts in ascending order, else descending.
-     */
-    public void sortByName(boolean ascending) {
-        // Query sorted data from the database
-        String sortOrder = ascending ? "ASC" : "DESC";
-        Cursor sortedCursor = dbHelper.getReadableDatabase().query(
-                "inventory",     // Table name
-                null,            // Columns (null = all columns)
-                null,            // Selection (null = no condition)
-                null,            // Selection arguments
-                null,            // Group By
-                null,            // Having
-                "item_name " + sortOrder // Order By clause
-        );
-
-        // Replace the adapter's Cursor with the sorted one
-        changeCursor(sortedCursor);
-    }
-
-
-    /**
-     * Filters the inventory items based on the specified category and updates the adapter
-     * with the resulting set of filtered items.
-     *
-     * @param category The category used to filter inventory items. Only items belonging
-     *                 to this category will be included in the updated dataset.
-     */
-    public void filter(String category) {
-        // Retrieve the filtered cursor from the database
-        Cursor filteredCursor = dbHelper.getFilteredInventoryItems(category);
-        changeCursor(filteredCursor);
-    }
-
-
-    /**
-     * Refreshes the Cursor used by the adapter by retrieving the latest set of inventory items
-     * from the database and updating the adapter with the new Cursor.
-     *
-     * This method fetches the most up-to-date data from the database using the dbHelper's
-     * getAllInventoryItems method and calls changeCursor to update the current Cursor
-     * used in the adapter.
-     *
-     * This ensures that the adapter reflects any changes made to the inventory data in the database.
-     */
-    private void refreshCursor() {
-        Cursor cursor = dbHelper.getAllInventoryItems();
-        changeCursor(cursor);
-
-    }
-
-
-    /**
-     * Sends a notification to the user with a specified title and message.
-     *
-     * This method is responsible for creating a notification channel if it does not already exist,
-     * building a notification using the provided title and message, and displaying it using the NotificationManager.
-     * The notification runs with high priority, and is automatically cancelled when clicked.
-     *
-     * @param context The context in which the notification is created and displayed.
-     *                It is used to access system services such as the NotificationManager.
-     * @param title The title of the notification to be displayed to the user.
-     * @param message The content/message body of the notification to be displayed to the user.
-     */
-    private void sendNotification(Context context, String title, String message) {
-        String channelId = "inventory_channel";
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-        NotificationChannel channel = new NotificationChannel(channelId, "Inventory Notifications", NotificationManager.IMPORTANCE_DEFAULT);
-        channel.setDescription("Notifications for inventory updates");
-        if (notificationManager != null) {
-            notificationManager.createNotificationChannel(channel);
-        }
-
-        // Build the notification
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle(title)
-                .setContentText(message)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setAutoCancel(true);
-
-        // Show the notification
-        if (notificationManager != null) {
-            notificationManager.notify(1, builder.build()); // 1 is the notification ID
-        }
-    }
-
-
-
-    /**
-     * Sends an SMS message to a specified phone number with a given message content.
-     *
-     * @param phoneNumber The recipient's phone number to which the SMS will be sent. Must be in a valid format.
-     * @param message The message content to be sent.*/
-    private void sendSms(String phoneNumber, String message) {
-        // TODO: Create method to obtain phone number from operator
-        SmsManager smsManager = SmsManager.getDefault();
-        smsManager.sendTextMessage(phoneNumber, null, message, null, null);
+    public int getItemCount() {
+        return mInventoryList.size();
     }
 
 }
