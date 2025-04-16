@@ -23,18 +23,31 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+
+    testOptions {
+        unitTests.all {
+            useJUnitPlatform()
+        }
+    }
 }
 
 dependencies {
-
+    implementation libs.gson
     implementation libs.appcompat
     implementation libs.material
     implementation libs.firebase.database
-    testImplementation libs.junit
+
+    testImplementation libs.mockito.core
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly libs.junit.jupiter.engine
+
+    androidTestImplementation libs.mockito.android
+    androidTestImplementation libs.runner
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
 }

@@ -1,7 +1,6 @@
 package com.snhu.cs360.inventoryapp.firebase;
 
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.snhu.cs360.inventoryapp.inventory.InventoryItem;
 
@@ -19,8 +18,6 @@ public class FirebaseDatabaseHelper {
      */
     public FirebaseDatabaseHelper(DatabaseReference reference) {
         this.databaseReference = reference;
-        // Connects to the "referencePath" node in the Firebase database
-//        databaseReference = FirebaseDatabase.getInstance().getReference(referencePath);
     }
 
 

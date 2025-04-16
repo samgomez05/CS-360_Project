@@ -1,20 +1,28 @@
 [versions]
-agp = "8.7.1"
-junit = "4.13.2"
+agp = "8.9.1"
+gson = "2.13.0"
+junitJupiter = "5.11.4"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
 material = "1.12.0"
 googleGmsGoogleServices = "4.4.2"
 firebaseDatabase = "21.0.0"
+mockitoCore = "5.17.0"
+runner = "1.6.2"
 
 [libraries]
-junit = { group = "junit", name = "junit", version.ref = "junit" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junitJupiter" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
+mockito-android = { module = "org.mockito:mockito-android", version.ref = "mockitoCore" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
+runner = { module = "androidx.test:runner", version.ref = "runner" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
