@@ -1,4 +1,4 @@
-package com.snhu.cs360.inventoryapp;
+package com.snhu.cs360.inventoryapp.inventory;
 
 
 /**
@@ -35,7 +35,7 @@ public class InventoryItem implements Comparable<InventoryItem> {
      * @param quantity the quantity of the inventory item in stock
      * @param tag the tag to which the inventory item belongs
      */
-    public InventoryItem(String name, String description, int quantity, String tag) {
+    public InventoryItem(String id, String name, String description, int quantity, String tag) {
         this.id = id;
         this.name = name;
         this.description = description;

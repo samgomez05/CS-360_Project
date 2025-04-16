@@ -1,4 +1,4 @@
-package com.snhu.cs360.inventoryapp;
+package com.snhu.cs360.inventoryapp.auth;
 
 import android.content.ContentValues;
 import android.content.Context;

@@ -1,4 +1,4 @@
-package com.snhu.cs360.inventoryapp;
+package com.snhu.cs360.inventoryapp.auth;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,6 +11,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.snhu.cs360.inventoryapp.MainActivity;
+import com.snhu.cs360.inventoryapp.R;
 
 public class LoginActivity extends AppCompatActivity {
 

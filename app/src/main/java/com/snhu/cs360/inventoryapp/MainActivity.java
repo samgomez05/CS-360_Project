@@ -1,7 +1,6 @@
 package com.snhu.cs360.inventoryapp;
 
 import android.Manifest;
-
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -25,14 +24,20 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.ItemTouchHelper;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.snhu.cs360.inventoryapp.auth.LoginActivity;
+import com.snhu.cs360.inventoryapp.firebase.FirebaseDatabaseHelper;
+import com.snhu.cs360.inventoryapp.inventory.InventoryAdapter;
+import com.snhu.cs360.inventoryapp.inventory.InventoryItem;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,11 +61,11 @@ public class MainActivity extends AppCompatActivity {
     private List<InventoryItem> inventoryItemList;
     private FirebaseDatabaseHelper firebaseDbHelper;
 
-    private boolean isListView = true;
-    private static final int SMS_PERMISSION_CODE = 100;
     private String filterCategory = "all";
-
     public static boolean sortAscending = false;
+
+    protected static final int SMS_PERMISSION_CODE = 100;
+    protected boolean isListView = true;
 
 
     @Override
@@ -97,17 +102,18 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, permissionsNeeded.toArray(new String[0]), SMS_PERMISSION_CODE);
         }
 
+        // Instantiate database helper to interact with FB Realtime databases for inventory
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("inventory");
+        firebaseDbHelper = new FirebaseDatabaseHelper(databaseReference);
+
         // Get views future use
         recyclerView = findViewById(R.id.recyclerView);
         inventoryItemList = new ArrayList<>();
 
         // Initial layout manager and adapter setup
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        inventoryAdapter = new InventoryAdapter(inventoryItemList, isListView);
+        inventoryAdapter = new InventoryAdapter(inventoryItemList, isListView, firebaseDbHelper);
         recyclerView.setAdapter(inventoryAdapter);
-
-        // Instantiate database helper to interact with FB Realtime databases for inventory
-        firebaseDbHelper = new FirebaseDatabaseHelper("inventory");
 
         // Initial populate
         loadInventory();
@@ -223,14 +229,13 @@ public class MainActivity extends AppCompatActivity {
      * associated adapter upon successful data retrieval. If the data loading
      * process fails, an error message is displayed to the user via a Toast.
      * <p>
-     * The following tasks are performed within the method:
-     * - Clears the current inventory item list to avoid duplicated entries.
-     * - Iterates through the data snapshot returned from the Firebase database.
+     * The following tasks are performed within the method: <p>
+     * - Clears the current inventory item list to avoid duplicated entries. <p>
+     * - Iterates through the data snapshot returned from the Firebase database. <p>
      * - Converts each snapshot to an InventoryItem instance and assigns the
-     *   snapshot key as the item ID.
-     * - Adds the populated InventoryItem objects to the inventory list.
-     * - Refreshes the associated adapter to display the updated data in the UI.
-     * <p>
+     *   snapshot key as the item ID. <p>
+     * - Adds the populated InventoryItem objects to the inventory list. <p>
+     * - Refreshes the associated adapter to display the updated data in the UI. <p>
      * Displays an error notification if there is a failure to fetch data from the
      * database.
      */
@@ -267,19 +272,19 @@ public class MainActivity extends AppCompatActivity {
      * the selected layout mode. It also stores the user's layout preference persistently
      * in shared preferences to retain the selection across application sessions.
      * <p>
-     * The method performs the following steps:
-     * 1. Toggles the `isListView` field, indicating the current layout mode.
-     * 2. Updates the shared preferences with the new layout mode.
+     * The method performs the following steps: <p>
+     * 1. Toggles the `isListView` field, indicating the current layout mode. <p>
+     * 2. Updates the shared preferences with the new layout mode. <p>
      * 3. Calls the `setLayoutManager` method to adjust the `RecyclerView`'s layout manager
-     *    based on the updated `isListView` value.
+     *    based on the updated `isListView` value. <p>
      * 4. Instantiates a new `InventoryAdapter` with the updated layout mode and sets it
-     *    to the `RecyclerView`.
+     *    to the `RecyclerView`. <p>
      * <p>
      * Note:
      * - Shared preferences key `view_preference` is used to save and retrieve the user's layout preference.
      * - The `InventoryAdapter` requires the inventory data and current layout mode to initialize.
      */
-    private void toggleLayoutManager() {
+    protected void toggleLayoutManager() {
         isListView = !isListView;
 
         SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
@@ -288,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
 
         setLayoutManager();
-        inventoryAdapter = new InventoryAdapter(inventoryItemList, isListView);
+        inventoryAdapter = new InventoryAdapter(inventoryItemList, isListView, firebaseDbHelper);
         recyclerView.setAdapter(inventoryAdapter);
     }
 
@@ -333,18 +338,18 @@ public class MainActivity extends AppCompatActivity {
      * the associated adapter.
      * <p>
      * Behavior:
-     * - The {@link android.widget.SearchView.OnQueryTextChange} callback is triggered as the user types.
+     * - The {@link android.widget.SearchView.OnQueryTextChange} callback is triggered as the user types. <p>
      * - The method performs a case-insensitive comparison between the input text and the names of
-     *   inventory items to determine matching items.
+     *   inventory items to determine matching items. <p>
      * - A new {@link InventoryAdapter} instance is created with the filtered list and is set to the
-     *   RecyclerView to display the matching results immediately.
+     *   RecyclerView to display the matching results immediately. <p>
      * <p>
      * Note:
      * - This method assumes that `recyclerView` and `inventoryItemList` are properly initialized
      *   before invocation. It uses these fields to update the list dynamically in response to the
-     *   search query.
+     *   search query. <p>
      * - The search functionality does not depend on whether the layout mode is a list or grid, as
-     *   it uses the current layout mode indicated by `isListView`.
+     *   it uses the current layout mode indicated by `isListView`. <p>
      */
     private void initSearchView() {
         SearchView searchView = findViewById(R.id.searchView);
@@ -362,7 +367,7 @@ public class MainActivity extends AppCompatActivity {
                         filteredItemList.add(item);
                     }
                 }
-                InventoryAdapter adapter = new InventoryAdapter(filteredItemList, isListView);
+                InventoryAdapter adapter = new InventoryAdapter(filteredItemList, isListView, firebaseDbHelper);
                 recyclerView.setAdapter(adapter);
 
                 return false;
@@ -392,7 +397,7 @@ public class MainActivity extends AppCompatActivity {
                 filteredItemList.add(item);
             }
 
-            InventoryAdapter adapter = new InventoryAdapter(filteredItemList, isListView);
+            InventoryAdapter adapter = new InventoryAdapter(filteredItemList, isListView, firebaseDbHelper);
             recyclerView.setAdapter(adapter);
         }
     }
@@ -406,22 +411,23 @@ public class MainActivity extends AppCompatActivity {
      * any applied filters or search results.
      * <p>
      * Behavior:
-     * - Utilizes the {@code InventoryAdapter} to rebind the complete inventory list.
-     * - Maintains the current layout mode (list or grid) as indicated by the {@code isListView} parameter.
+     * - Utilizes the {@code InventoryAdapter} to rebind the complete inventory list. <p>
+     * - Maintains the current layout mode (list or grid) as indicated by the {@code isListView} parameter. <p>
      * <p>
      * Dependencies:
-     * - {@code recyclerView}: The RecyclerView instance to display inventory items.
-     * - {@code inventoryItemList}: The list containing all inventory items to be displayed.
-     * - {@code isListView}: A boolean determining the current layout mode.
+     * - {@code recyclerView}: The RecyclerView instance to display inventory items. <p>
+     * - {@code inventoryItemList}: The list containing all inventory items to be displayed. <p>
+     * - {@code isListView}: A boolean determining the current layout mode. <p>
      * <p>
      * Note:
      * - This method should be called when the filter has to be cleared and the entire inventory needs to
-     *   be displayed.
+     *   be displayed. <p>
      */
     public void resetFilter() {
-        InventoryAdapter adapter = new InventoryAdapter(inventoryItemList, isListView);
+        InventoryAdapter adapter = new InventoryAdapter(inventoryItemList, isListView, firebaseDbHelper);
         recyclerView.setAdapter(adapter);
     }
+
 
     /**
      * Sets the sort order for the inventory list and updates the adapter with the sorted order.
@@ -438,7 +444,7 @@ public class MainActivity extends AppCompatActivity {
             sortedItemList.addAll(inventoryItemList.stream().sorted(Collections.reverseOrder()).collect(Collectors.toList()));
         }
 
-        InventoryAdapter adapter = new InventoryAdapter(sortedItemList, isListView);
+        InventoryAdapter adapter = new InventoryAdapter(sortedItemList, isListView, firebaseDbHelper);
         recyclerView.setAdapter(adapter);
 
     }
@@ -453,10 +459,10 @@ public class MainActivity extends AppCompatActivity {
      * a red background with a "Delete" text for visual feedback.
      * <p>
      * Functional Overview:
-     * - No Drag & Drop Support: Drag and drop movements are disabled by returning false in onMove().
-     * - Swipe Gesture: Allows left-swipe gestures on items.
-     * - Item Deletion: Removes the item from the underlying dataset upon swipe.
-     * - Custom Swipe UI: Displays a red background with a white "Delete" text as swipe feedback.
+     * - No Drag & Drop Support: Drag and drop movements are disabled by returning false in onMove(). <p>
+     * - Swipe Gesture: Allows left-swipe gestures on items. <p>
+     * - Item Deletion: Removes the item from the underlying dataset upon swipe. <p>
+     * - Custom Swipe UI: Displays a red background with a white "Delete" text as swipe feedback. <p>
      */
     private void setUpItemTouchHelper() {
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {

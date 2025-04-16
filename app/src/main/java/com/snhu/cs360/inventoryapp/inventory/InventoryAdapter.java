@@ -1,4 +1,4 @@
-package com.snhu.cs360.inventoryapp;
+package com.snhu.cs360.inventoryapp.inventory;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -9,6 +9,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.snhu.cs360.inventoryapp.firebase.FirebaseDatabaseHelper;
+import com.snhu.cs360.inventoryapp.R;
 
 import java.util.List;
 
@@ -24,10 +27,10 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
     private FirebaseDatabaseHelper mFirebaseDatabaseHelper;
     private boolean isListView;
 
-    public InventoryAdapter(List<InventoryItem> inventoryList, boolean isListView) {
+    public InventoryAdapter(List<InventoryItem> inventoryList, boolean isListView, FirebaseDatabaseHelper firebaseDatabaseHelper) {
         mInventoryList = inventoryList;
         this.isListView = isListView;
-        mFirebaseDatabaseHelper = new FirebaseDatabaseHelper("inventory");
+        this.mFirebaseDatabaseHelper = firebaseDatabaseHelper;
     }
 
 

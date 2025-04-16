@@ -1,8 +1,9 @@
-package com.snhu.cs360.inventoryapp;
+package com.snhu.cs360.inventoryapp.firebase;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.snhu.cs360.inventoryapp.inventory.InventoryItem;
 
 
 public class FirebaseDatabaseHelper {
@@ -16,9 +17,10 @@ public class FirebaseDatabaseHelper {
      * in the Firebase Realtime Database. This node will be used for all database operations
      * such as adding, updating, fetching, and deleting inventory items.
      */
-    public FirebaseDatabaseHelper(String referencePath) {
+    public FirebaseDatabaseHelper(DatabaseReference reference) {
+        this.databaseReference = reference;
         // Connects to the "referencePath" node in the Firebase database
-        databaseReference = FirebaseDatabase.getInstance().getReference(referencePath);
+//        databaseReference = FirebaseDatabase.getInstance().getReference(referencePath);
     }
 
 
@@ -55,6 +57,9 @@ public class FirebaseDatabaseHelper {
      * @param updatedItem the updated inventory item data to replace the existing item in the database
      */
     public void updateItem(String itemId, InventoryItem updatedItem) {
+        if (updatedItem.getId() == null) {
+            updatedItem.setId(itemId);
+        }
         databaseReference.child(itemId).setValue(updatedItem);
     }
 
