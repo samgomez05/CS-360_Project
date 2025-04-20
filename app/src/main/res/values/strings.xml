@@ -10,4 +10,7 @@
     <string name="itemSubtract">-</string>
     <string name="item_description">Item Description</string>
 
+    <!-- User Registration Dialog -->
+    <string name="registerOk">Register</string>
+
 </resources>

@@ -34,7 +34,7 @@
 
         <!-- Username Field -->
         <EditText
-            android:id="@+id/username_field"
+            android:id="@+id/email_field"
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:hint="Username/Email"
@@ -51,7 +51,7 @@
             android:layout_height="50dp"
             android:inputType="textPassword"
             android:hint="Password"
-            app:layout_constraintTop_toBottomOf="@id/username_field"
+            app:layout_constraintTop_toBottomOf="@id/email_field"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintWidth_default="spread"
@@ -65,6 +65,18 @@
             android:layout_marginTop="10dp"
             android:text="Login"
             app:layout_constraintTop_toBottomOf="@id/password_field"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintWidth_default="spread"
+            app:layout_constraintWidth_percent="0.8"/>
+
+        <!-- Register button -->
+        <Button
+            android:id="@+id/register_button"
+            android:layout_width="110dp"
+            android:layout_height="wrap_content"
+            android:text="Register"
+            app:layout_constraintTop_toBottomOf="@id/login_button"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintWidth_default="spread"

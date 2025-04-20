@@ -34,70 +34,33 @@
         app:layout_constraintRight_toRightOf="parent"
         tools:ignore="ContentDescription" />
 
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/searchView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="5"
-        android:visibility="gone"
-        app:iconifiedByDefault="false"
-        app:queryHint="Search by Item Name"
-        app:layout_constraintTop_toBottomOf="@id/toolbar_main">
-
-    </androidx.appcompat.widget.SearchView>
 
     <LinearLayout
         android:id="@+id/filterView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:layout_margin="5dp"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/searchView">
+        app:layout_constraintTop_toBottomOf="@id/toolbar_main">
 
-
-        <Button
-            android:id="@+id/filterByElectronics"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:layout_margin="1dp"
-            android:text="Filter By Electronics"
-            android:textColor="@color/black"
-            android:textSize="11sp"
-            android:onClick="filterByTag"
-            android:clickable="true"
-            android:backgroundTint="@color/filterButtonGray"
-            android:foregroundTint="@color/app_blue">
-
-        </Button>
-
-        <Button
-            android:id="@+id/filterByOffice"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:layout_margin="1dp"
-            android:text="Filter By Office Supplies"
-            android:textColor="@color/black"
-            android:textSize="11sp"
-            android:onClick="filterByTag"
-            android:backgroundTint="@color/filterButtonGray">
-
-        </Button>
-
-        <Button
-            android:id="@+id/resetFilter"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
+        <androidx.appcompat.widget.SearchView
+            android:id="@+id/searchView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_margin="1dp"
-            android:text="Reset"
-            android:textColor="@color/black"
-            android:textSize="11sp"
-            android:onClick="displayDatabaseItems"
-            android:backgroundTint="@color/filterButtonGray">
+            app:iconifiedByDefault="false"
+            app:queryHint="Search by Item Name">
 
-        </Button>
+        </androidx.appcompat.widget.SearchView>
+
+        <Spinner
+            android:id="@+id/tagListSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_weight="2"
+            android:spinnerMode="dropdown"
+            android:clickable="true"/>
 
     </LinearLayout>
 

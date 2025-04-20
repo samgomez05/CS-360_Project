@@ -1,6 +1,7 @@
 package com.snhu.cs360.inventoryapp;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -9,14 +10,19 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
@@ -56,15 +62,15 @@ public class MainActivity extends AppCompatActivity {
      */
 
 
-    private RecyclerView recyclerView;
-    private InventoryAdapter inventoryAdapter;
+    protected RecyclerView recyclerView;
+    protected InventoryAdapter inventoryAdapter;
     private List<InventoryItem> inventoryItemList;
+    private List<String> tagList;
     private FirebaseDatabaseHelper firebaseDbHelper;
 
-    private String filterCategory = "all";
+    private ItemTouchHelper itemTouchHelper;
     public static boolean sortAscending = false;
 
-    protected static final int SMS_PERMISSION_CODE = 100;
     protected boolean isListView = true;
 
 
@@ -89,26 +95,14 @@ public class MainActivity extends AppCompatActivity {
         // Initialize search toolbar
         initSearchView();
 
-        // Request SMS and Notification permissions from user
-        // Needed as an array as only one permission was being asked upon login
-        List<String> permissionsNeeded = new ArrayList<>();
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-            permissionsNeeded.add(Manifest.permission.SEND_SMS);
-        }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            permissionsNeeded.add(Manifest.permission.POST_NOTIFICATIONS);
-        }
-        if (!permissionsNeeded.isEmpty()) {
-            ActivityCompat.requestPermissions(this, permissionsNeeded.toArray(new String[0]), SMS_PERMISSION_CODE);
-        }
-
         // Instantiate database helper to interact with FB Realtime databases for inventory
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("inventory");
         firebaseDbHelper = new FirebaseDatabaseHelper(databaseReference);
 
-        // Get views future use
+        // Set RecyclerView and lists
         recyclerView = findViewById(R.id.recyclerView);
         inventoryItemList = new ArrayList<>();
+        tagList = new ArrayList<>();
 
         // Initial layout manager and adapter setup
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -123,11 +117,6 @@ public class MainActivity extends AppCompatActivity {
         // On FAB press, show dialogue to add item to inventory
         findViewById(R.id.fab_main).setOnClickListener(v -> showAddItemDialog());
 
-        // Link buttons in view with actions
-        findViewById(R.id.filterByElectronics).setOnClickListener(v -> applyFilter("electronics"));
-        findViewById(R.id.filterByOffice).setOnClickListener(v -> applyFilter("stationery"));
-        findViewById(R.id.resetFilter).setOnClickListener(v -> resetFilter());
-
     }
 
 
@@ -140,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
      *         {@code true} if the menu should be displayed, otherwise calls the superclass implementation.
      */
     @Override
-    public boolean onCreateOptionsMenu(android.view.Menu menu) {
+    public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.dialog_main_menu, menu);
 
@@ -159,21 +148,18 @@ public class MainActivity extends AppCompatActivity {
      * Handles the selection of menu items in the options menu. Executes specific actions
      * based on the selected item's title, such as logging out or toggling the user interface layout.
      * <p>
-     * @param item The {@link android.view.MenuItem} that was selected.
+     * @param item The {@link MenuItem} that was selected.
      * @return A boolean indicating whether the event was handled. Returns {@code true} if
      *         the event was consumed, otherwise invokes the superclass implementation.
      */
     @Override
-    public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (String.valueOf(item.getTitle())) {
             case "Search and Filters":
-                SearchView searchView = findViewById(R.id.searchView);
                 LinearLayout filterView = findViewById(R.id.filterView);
-                if (searchView.getVisibility() == View.GONE) {
-                    searchView.setVisibility(View.VISIBLE);
+                if (filterView.getVisibility() == View.GONE) {
                     filterView.setVisibility(View.VISIBLE);
                 } else {
-                    searchView.setVisibility(View.GONE);
                     filterView.setVisibility(View.GONE);
                 }
                 break;
@@ -193,30 +179,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-
-    /**
-     * This method is called when the user grants or denies the requested permissions; it
-     * checks if the SMS permission was granted and notifies the user via a
-     * toast message accordingly.
-     * <p>
-     * @param requestCode The request code passed in {@code requestPermissions}.
-     * @param permissions The requested permissions array.
-     * @param grantResults The grant result status for each corresponding permission,
-     *                     either {@link PackageManager#PERMISSION_GRANTED} or
-     *                     {@link PackageManager#PERMISSION_DENIED}.
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == SMS_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "SMS permission granted", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "SMS permission denied", Toast.LENGTH_SHORT).show();
-            }
-        }
     }
 
 
@@ -245,16 +207,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 inventoryItemList.clear();
+                tagList.clear();
                 for (DataSnapshot itemSnapshot : snapshot.getChildren()) {
                     InventoryItem item = itemSnapshot.getValue(InventoryItem.class);
                     if (item != null) {
                         // Set item id from key to populate missing id data
                         item.setId(itemSnapshot.getKey());
+                        if (!tagList.contains(item.getTag())) {
+                            tagList.add(item.getTag());
+                        }
                         inventoryItemList.add(item);
                     }
                 }
 
-                inventoryAdapter.notifyDataSetChanged();
+                inventoryAdapter.setItems(new ArrayList<>(inventoryItemList));
+                initSpinner();
             }
 
             @Override
@@ -361,15 +328,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String search) {
-                ArrayList<InventoryItem> filteredItemList = new ArrayList<>();
+                ArrayList<InventoryItem> seachedItemList = new ArrayList<>();
                 for (InventoryItem item : inventoryItemList) {
                     if (item.getName().toLowerCase().contains(search.toLowerCase())) {
-                        filteredItemList.add(item);
+                        seachedItemList.add(item);
                     }
                 }
-                InventoryAdapter adapter = new InventoryAdapter(filteredItemList, isListView, firebaseDbHelper);
-                recyclerView.setAdapter(adapter);
-
+                inventoryAdapter.setItems(seachedItemList);
                 return false;
             }
         });
@@ -385,21 +350,18 @@ public class MainActivity extends AppCompatActivity {
      *                 belonging to this category will be displayed.
      */
     private void applyFilter(String category) {
-        filterCategory = category;
+        if (category.equals("All")) {
+            resetFilter();
+            return;
+        }
 
         ArrayList<InventoryItem> filteredItemList = new ArrayList<>();
         for (InventoryItem item : inventoryItemList) {
-            if (item.getTag() == null) {
-                item.setTag("");
-            }
-
-            if (item.getTag().toLowerCase().contains(filterCategory.toLowerCase())) {
+            if (item.getTag() != null && item.getTag().equalsIgnoreCase(category)) {
                 filteredItemList.add(item);
             }
-
-            InventoryAdapter adapter = new InventoryAdapter(filteredItemList, isListView, firebaseDbHelper);
-            recyclerView.setAdapter(adapter);
         }
+        inventoryAdapter.setItems(filteredItemList);
     }
 
 
@@ -424,8 +386,7 @@ public class MainActivity extends AppCompatActivity {
      *   be displayed. <p>
      */
     public void resetFilter() {
-        InventoryAdapter adapter = new InventoryAdapter(inventoryItemList, isListView, firebaseDbHelper);
-        recyclerView.setAdapter(adapter);
+        inventoryAdapter.setItems(new ArrayList<>(inventoryItemList));
     }
 
 
@@ -444,24 +405,26 @@ public class MainActivity extends AppCompatActivity {
             sortedItemList.addAll(inventoryItemList.stream().sorted(Collections.reverseOrder()).collect(Collectors.toList()));
         }
 
-        InventoryAdapter adapter = new InventoryAdapter(sortedItemList, isListView, firebaseDbHelper);
-        recyclerView.setAdapter(adapter);
-
+        inventoryAdapter.setItems(sortedItemList);
     }
 
 
     /**
      * Configures and attaches an {@link ItemTouchHelper} to the provided {@link RecyclerView}.
-     * This helper allows swipe gestures on list items to enable deletion of items.
+     * This helper allows swipe gestures on list items to enable deletion of items, with added confirmation
+     * and cancellation handling for improved user experience.
      * <p>
      * The method sets up swipe behavior and defines the visual and functional response
-     * when an item is swiped. Swiping an item to the left triggers item deletion and displays
-     * a red background with a "Delete" text for visual feedback.
+     * when an item is swiped. Swiping an item to the left displays a confirmation dialog
+     * where users can approve or cancel the deletion, and employs reverse animation
+     * for the cancellation action. A red background with "Delete" text provides visual
+     * feedback during the swipe gesture.
      * <p>
      * Functional Overview:
+     * - Confirmation Dialog: Prompts the user to confirm before deleting the item. <p>
+     * - Swipe Cancellation: Uses reverse animation for smooth interface restoration if the deletion is canceled. <p>
      * - No Drag & Drop Support: Drag and drop movements are disabled by returning false in onMove(). <p>
      * - Swipe Gesture: Allows left-swipe gestures on items. <p>
-     * - Item Deletion: Removes the item from the underlying dataset upon swipe. <p>
      * - Custom Swipe UI: Displays a red background with a white "Delete" text as swipe feedback. <p>
      */
     private void setUpItemTouchHelper() {
@@ -475,9 +438,45 @@ public class MainActivity extends AppCompatActivity {
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 // Get the position of the item
                 int position = viewHolder.getAdapterPosition();
+                InventoryItem itemToDelete = inventoryAdapter.getItemAt(position);
 
                 // Perform deletion
-                deleteItem(position);
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Delete Item");
+                builder.setMessage("Are you sure you want to delete \"" + itemToDelete.getName() + "\"?");
+
+                builder.setPositiveButton("Yes", (dialog, which) -> {
+                    firebaseDbHelper.deleteItem(itemToDelete.getId());
+                    inventoryItemList.removeIf( v -> v.getId().equals(itemToDelete.getId()));
+                    inventoryAdapter.removeItem(itemToDelete);
+                });
+
+                builder.setNegativeButton("No", (dialog, which) -> {
+                    dialog.dismiss();
+                    recyclerView.post(() -> {
+                        // Reverse animation added for visual appeal
+                        RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(position);
+                        if (holder != null) {
+                            View itemView = holder.itemView;
+                            ObjectAnimator animator = ObjectAnimator.ofFloat(itemView, "translationX", itemView.getTranslationX(), 0);
+                            animator.setDuration(250);
+                            animator.start();
+                        }
+
+                        inventoryAdapter.notifyItemChanged(position);
+                        itemTouchHelper.attachToRecyclerView(null);
+                        itemTouchHelper.attachToRecyclerView(recyclerView);
+                    });
+                });
+
+                builder.setCancelable(false);
+                builder.show();
+            }
+
+            @Override
+            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                super.clearView(recyclerView, viewHolder);
+                inventoryAdapter.notifyItemChanged(viewHolder.getAdapterPosition());
             }
 
             /*
@@ -513,53 +512,11 @@ public class MainActivity extends AppCompatActivity {
                 super.onChildDraw(canvas, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
 
-            @Override
-            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-                super.clearView(recyclerView, viewHolder);
-                inventoryAdapter.notifyItemChanged(viewHolder.getAdapterPosition());
-            }
-
-
         };
 
         // Attach the ItemTouchHelper to the RecyclerView
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+        itemTouchHelper = new ItemTouchHelper(simpleCallback);
         itemTouchHelper.attachToRecyclerView(recyclerView);
-    }
-
-
-    /**
-     * Deletes an item from the inventory at the specified position after prompting
-     * for user confirmation. If the user confirms, the item is removed from the list,
-     * the associated data is deleted from the database, and the UI is updated.
-     * If the user cancels, the item's state is restored.
-     * <p>
-     * @param position The position of the item to be deleted in the inventory list.
-     */
-    private void deleteItem(int position) {
-        // Get the item to delete
-        InventoryItem itemToDelete = inventoryItemList.get(position);
-
-        // Show a confirmation dialog
-        new AlertDialog.Builder(this)
-                .setTitle("Delete Item")
-                .setMessage("Are you sure you want to delete \"" + itemToDelete.getName() + "\"?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-
-                    // Remove item from list
-                    inventoryItemList.remove(position);
-                    inventoryAdapter.notifyItemRemoved(position);
-                    firebaseDbHelper.deleteItem(itemToDelete.getId());
-
-                    // Show confirmation
-                    Toast.makeText(this, "Item deleted", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("No", (dialog, which) -> {
-                    // User canceled deletion, restore the item
-                    inventoryAdapter.notifyItemChanged(position);
-                })
-                .setCancelable(false) // Prevent dismissing the dialog by tapping outside
-                .show();
     }
 
 
@@ -614,10 +571,11 @@ public class MainActivity extends AppCompatActivity {
     private void showAddItemDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this).setTitle("Add New Item");
 
-        View viewInflated = getLayoutInflater().inflate(R.layout.dialog_add_item, (ViewGroup) findViewById(android.R.id.content), false);
+        View viewInflated = getLayoutInflater().inflate(R.layout.dialog_add_item, findViewById(android.R.id.content), false);
         final EditText inputName = viewInflated.findViewById(R.id.input_item_name);
         final EditText inputDescription = viewInflated.findViewById(R.id.input_item_description);
         final EditText inputQuantity = viewInflated.findViewById(R.id.input_item_quantity);
+        final EditText inputTag = viewInflated.findViewById(R.id.input_item_tag);
 
         builder.setView(viewInflated);
         builder.setPositiveButton(android.R.string.ok, (dialog, which) -> {
@@ -635,10 +593,15 @@ public class MainActivity extends AppCompatActivity {
                 InventoryItem newItem = new InventoryItem();
                 newItem.setName(inputName.getText().toString());
                 newItem.setQuantity(Integer.parseInt(inputQuantity.getText().toString()));
+                newItem.setTag(inputTag.getText().toString());
 
                 String itemDescription = "";
                 if (!inputDescription.getText().toString().isEmpty()) { itemDescription = inputDescription.getText().toString(); }
                 newItem.setDescription(itemDescription);
+
+                String itemTag = "Other";
+                if (!inputTag.getText().toString().isEmpty()) { itemTag = inputTag.getText().toString(); }
+                newItem.setDescription(itemTag);
 
                 firebaseDbHelper.addItem(newItem);
                 inventoryItemList.add(newItem);
@@ -658,6 +621,52 @@ public class MainActivity extends AppCompatActivity {
 
         builder.show();
 
+    }
+
+
+    /**
+     * Initializes the {@code Spinner} used for filtering inventory items by tags.
+     * <p>
+     * This method creates a dropdown menu, populating it with available tags and the "All" option
+     * to reset the filter. Each tag in the `Spinner` corresponds to a category in the inventory.
+     * When a user selects a tag, the inventory list is filtered based on the selected tag.
+     * <p>
+     * Behavior: <p>
+     * - "All" resets the filter and displays all inventory items. <p>
+     * - Selecting a specific tag filters the inventory to match the selected category. <p>
+     * <p>
+     * Steps: <p>
+     * - The tag list is first updated with the "All" option at index 0. <p>
+     * - An {@link ArrayAdapter} is configured with tagList and applied to the {@link Spinner}. <p>
+     * - An {@link android.widget.AdapterView.OnItemSelectedListener} is set to listen and respond
+     * to item selection events. It calls {@code applyFilter()} with the selected tag to filter
+     * the inventory list. <p>
+     * <p>
+     * Note: Ensure that `tagList` contains the relevant tags and the {@code Spinner} component
+     * is properly initialized in the corresponding layout resource.
+     */
+    private void initSpinner() {
+        Spinner spinner = findViewById(R.id.tagListSpinner);
+        tagList.add(0, "All");
+
+        // Create ArrayAdapter for Spinner
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, tagList);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // Set adapter to the Spinner
+        spinner.setAdapter(adapter);
+
+        // Implement logic when an item is selected from the Spinner to filter the inventory
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedTag = parent.getItemAtPosition(position).toString();
+                applyFilter(selectedTag);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) { }
+        });
     }
 
 }

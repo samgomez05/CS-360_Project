@@ -39,4 +39,14 @@
         android:importantForAutofill="no"
         tools:ignore="HardcodedText" />
 
+    <EditText
+        android:id="@+id/input_item_tag"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:maxWidth="480dp"
+        android:hint="Item Tag"
+        android:inputType="text"
+        android:importantForAutofill="no"
+        tools:ignore="HardcodedText" />
 </LinearLayout>

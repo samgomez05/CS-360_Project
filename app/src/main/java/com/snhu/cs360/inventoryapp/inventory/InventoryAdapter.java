@@ -1,10 +1,13 @@
 package com.snhu.cs360.inventoryapp.inventory;
 
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -23,9 +26,10 @@ import java.util.List;
  */
 public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.ViewHolder> {
 
+    private boolean isListView;
     private List<InventoryItem> mInventoryList;
     private FirebaseDatabaseHelper mFirebaseDatabaseHelper;
-    private boolean isListView;
+
 
     public InventoryAdapter(List<InventoryItem> inventoryList, boolean isListView, FirebaseDatabaseHelper firebaseDatabaseHelper) {
         mInventoryList = inventoryList;
@@ -109,12 +113,14 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
         });
 
         holder.itemSubtractButton.setOnClickListener(v -> {
-            if (currentItem.getQuantity() >= 0) {
+            if (currentItem.getQuantity() > 0) {
                 currentItem.setQuantity(currentItem.getQuantity() - 1);
                 mFirebaseDatabaseHelper.updateItem(currentItem.getId(), currentItem);
                 notifyItemChanged(position);
             }
         });
+
+        holder.itemView.setOnClickListener(v -> showEditItemDialog(currentItem, position, holder));
 
     }
 
@@ -127,6 +133,108 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
     @Override
     public int getItemCount() {
         return mInventoryList.size();
+    }
+
+
+    /**
+     * Updates the list of inventory items in the adapter and refreshes the data displayed by the RecyclerView.
+     *
+     * @param items The new list of {@link InventoryItem} objects to be displayed in the inventory.
+     */
+    @SuppressLint("NotifyDataSetChanged")
+    public void setItems(List<InventoryItem> items) {
+        this.mInventoryList = items;
+        notifyDataSetChanged();
+    }
+
+
+    /**
+     * Displays a dialog for editing an existing inventory item's details.
+     * The dialog allows updating the item's name, description, quantity, and tag.
+     * It also updates the inventory list and synchronizes changes with the Firebase database
+     * upon saving.
+     * <p>
+     * @param currentItem the {@link InventoryItem} representing the inventory item to be edited.
+     *                    Pre-fills the dialog inputs with the current details of the item.
+     * @param position the position of the {@code currentItem} in the inventory list. Used to update
+     *                 the item within the adapter and notify the changes to the RecyclerView.
+     * @param holder the {@code ViewHolder} containing the context and item view associated with
+     *               the inventory list. Used for inflating the dialog and accessing resources.
+     */
+    private void showEditItemDialog(InventoryItem currentItem, int position, ViewHolder holder) {
+        View dialogView = LayoutInflater.from(holder.itemView.getContext()).inflate(R.layout.item_edit_view, null);
+
+        // Create the dialog
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(holder.itemView.getContext());
+        dialogBuilder.setTitle("Edit Item");
+        dialogBuilder.setView(dialogView);
+
+        AlertDialog dialog = dialogBuilder.create();
+
+        // Get references to dialog inputs
+        EditText editName = dialogView.findViewById(R.id.itemNameEditText);
+        EditText editDescription = dialogView.findViewById(R.id.itemDescriptionEditText);
+        EditText editQuantity = dialogView.findViewById(R.id.itemQuantityEditText);
+        EditText editTag = dialogView.findViewById(R.id.itemTagEditText);
+
+        // Pre-fill dialog inputs with current item's data
+        editName.setText(currentItem.getName());
+        editDescription.setText(currentItem.getDescription());
+        editQuantity.setText(String.valueOf(currentItem.getQuantity()));
+        editTag.setText(currentItem.getTag());
+
+        // Set up confirm and cancel buttons
+        Button saveButton = dialogView.findViewById(R.id.saveButton);
+        Button cancelButton = dialogView.findViewById(R.id.cancelButton);
+
+        saveButton.setOnClickListener(v -> {
+
+            // Update the inventory item with new data
+            currentItem.setName(editName.getText().toString());
+            currentItem.setDescription(editDescription.getText().toString());
+            currentItem.setQuantity(Integer.parseInt(editQuantity.getText().toString()));
+            currentItem.setTag(editTag.getTag().toString());
+
+            // Update the adapter and notify changes
+            mInventoryList.set(position, currentItem);
+            notifyItemChanged(position);
+
+            // Update the item in Firebase database
+            mFirebaseDatabaseHelper.updateItem(currentItem.getId(), currentItem);
+
+            dialog.dismiss(); // Close the dialog
+        });
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss()); // Close the dialog on cancel
+
+        dialog.show(); // Display the dialog
+    }
+
+
+    /**
+     * Retrieves the inventory item at the specified position in the list.
+     * <p>
+     * @param position The position of the inventory item in the list.
+     * @return The {@code InventoryItem} object located at the specified position.
+     */
+    public InventoryItem getItemAt(int position) {
+        return mInventoryList.get(position);
+    }
+
+
+    /**
+     * Removes the specified item from the inventory list and notifies the adapter of the updates.
+     * This method also triggers visual updates in the associated RecyclerView to reflect the changes.
+     * <p>
+     * @param item The {@link InventoryItem} to be removed from the inventory list.
+     */
+    public void removeItem(InventoryItem item) {
+        int index = mInventoryList.indexOf(item);
+        if (index >= 0) {
+            mInventoryList.remove(index);
+            notifyItemRemoved(index);
+            notifyItemRangeChanged(index, mInventoryList.size());
+        }
     }
 
 }
